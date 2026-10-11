@@ -994,6 +994,108 @@ end $$;
 revoke execute on function portal_demo_pay(text, numeric) from public;
 grant execute on function portal_demo_pay(text, numeric) to anon, authenticated;
 
+
+-- =====================================================================
+-- SECURITY DEPOSIT RECEIVED (cash / UPI …), separate from rent
+-- =====================================================================
+create table if not exists deposit_payments (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references owners(id) on delete cascade,
+  tenant_id uuid not null references tenants(id) on delete cascade,
+  amount numeric(10,2) not null check (amount > 0),
+  mode text not null default 'cash' check (mode in ('cash','upi','bank','other')),
+  paid_on date not null default today_ist(),
+  note text,
+  created_at timestamptz not null default now()
+);
+create index if not exists deposit_payments_tenant_idx on deposit_payments(tenant_id);
+alter table deposit_payments enable row level security;
+drop policy if exists "own deposit payments" on deposit_payments;
+create policy "own deposit payments" on deposit_payments for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+
+create or replace function deposit_payments_before() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from tenants t where t.id = new.tenant_id and t.owner_id = new.owner_id) then
+    raise exception 'BAD_TENANT';
+  end if;
+  return new;
+end $$;
+revoke execute on function deposit_payments_before() from public, anon, authenticated;
+drop trigger if exists deposit_payments_before_trg on deposit_payments;
+create trigger deposit_payments_before_trg before insert or update on deposit_payments
+  for each row execute function deposit_payments_before();
+
+insert into deposit_payments (owner_id, tenant_id, amount, mode, paid_on, note)
+select t.owner_id, t.id, t.security_deposit, 'other', t.join_date, 'Recorded before deposit tracking'
+  from tenants t where t.security_deposit > 0
+   and not exists (select 1 from deposit_payments d where d.tenant_id = t.id);
+
+create or replace view tenant_balances with (security_invoker = true) as
+select
+  t.id as tenant_id, t.owner_id, t.property_id, t.name, t.phone, t.room, t.rent_amount, t.due_day,
+  t.join_date, t.left_date, t.is_active, t.notify_enabled, t.note, t.security_deposit,
+  coalesce(p.deposit_used, 0) as deposit_used,
+  coalesce(c.total_charged, 0) as total_charged,
+  coalesce(p.total_paid, 0) as total_paid,
+  coalesce(c.total_charged, 0) - coalesce(p.total_paid, 0) as balance,
+  coalesce(c.due_now, 0) - coalesce(p.total_paid, 0) as due_now,
+  coalesce(d.deposit_received, 0) as deposit_received
+from tenants t
+left join (select tenant_id, sum(amount) total_charged,
+                  sum(amount) filter (where due_date <= today_ist()) due_now
+             from charges group by tenant_id) c on c.tenant_id = t.id
+left join (select tenant_id, sum(amount) total_paid,
+                  sum(amount) filter (where mode = 'deposit') deposit_used
+             from payments group by tenant_id) p on p.tenant_id = t.id
+left join (select tenant_id, sum(amount) deposit_received from deposit_payments group by tenant_id) d on d.tenant_id = t.id;
+revoke all on tenant_balances from anon;
+
+create or replace function payments_before() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare got numeric; used numeric;
+begin
+  if not exists (select 1 from tenants t where t.id = new.tenant_id and t.owner_id = new.owner_id) then
+    raise exception 'BAD_TENANT';
+  end if;
+  if new.mode = 'deposit' then
+    select coalesce(sum(amount), 0) into got from deposit_payments where tenant_id = new.tenant_id;
+    select coalesce(sum(amount), 0) into used from payments
+     where tenant_id = new.tenant_id and mode = 'deposit' and id <> new.id;
+    if used + new.amount > got then raise exception 'DEPOSIT_EXCEEDED'; end if;
+  end if;
+  return new;
+end $$;
+
+create or replace function portal(p_token text) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object(
+    'name', t.name, 'room', t.room, 'place', p.name, 'category', p.category,
+    'owner', o.full_name, 'owner_phone', o.phone, 'upi', o.upi_id, 'lang', o.language,
+    'rent', t.rent_amount, 'due_day', t.due_day, 'active', t.is_active,
+    'balance', b.balance, 'due_now', b.due_now,
+    'deposit', t.security_deposit, 'deposit_received', b.deposit_received, 'deposit_used', b.deposit_used,
+    'online', exists (select 1 from private.gateways g where g.owner_id = o.id),
+    'demo', o.demo_pay and not exists (select 1 from private.gateways g where g.owner_id = o.id),
+    'history', coalesce((select jsonb_agg(h order by h->>'d' desc, h->>'k') from (
+        select jsonb_build_object('d', c.due_date, 'k', c.kind, 'a', c.amount, 'l', c.label, 'n', c.days_charged) h
+          from charges c where c.tenant_id = t.id
+        union all
+        select jsonb_build_object('d', y.paid_on, 'k', 'pay', 'a', y.amount, 'm', y.mode, 'ref', y.ref)
+          from payments y where y.tenant_id = t.id
+        order by 1 desc limit 300) x), '[]'::jsonb),
+    'deposits', coalesce((select jsonb_agg(jsonb_build_object('d', d.paid_on, 'a', d.amount, 'm', d.mode) order by d.paid_on)
+          from deposit_payments d where d.tenant_id = t.id), '[]'::jsonb),
+    'pending', coalesce((select jsonb_agg(jsonb_build_object('amount', c.amount, 'utr', c.utr, 'at', c.created_at) order by c.created_at desc)
+          from payment_claims c where c.tenant_id = t.id and c.status = 'pending'), '[]'::jsonb)
+  )
+  from tenants t
+  join properties p on p.id = t.property_id
+  join owners o on o.id = t.owner_id
+  join tenant_balances b on b.tenant_id = t.id
+  where t.pay_token = p_token and length(p_token) >= 24
+$$;
+
 -- ---------- owners created before this script --------------------------
 insert into owners (id, phone) select id, phone from auth.users
  where coalesce(raw_user_meta_data->>'role', '') <> 'tenant' on conflict do nothing;

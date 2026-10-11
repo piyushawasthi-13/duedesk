@@ -109,7 +109,7 @@ const L = {
   badAmt:'Enter an amount between ₹1 and ₹5,00,000.', netErr:'Network problem. Please try again.', left:'You have moved out', powered:'Powered by DueDesk', checking:'Checking…', payOnlineTest:'Pay {a} online (test)', testSub:'Demo payment — no real money is taken', testCheckout:'Checkout', testMode:'TEST MODE',
   testNote:'This is a practice payment. No real money moves. It shows on the owner\'s dashboard as a test payment.', method:'Payment method', card:'Card', netbanking:'Net banking',
   payNow:'Pay {a}', simFail:'Simulate failed payment', testFailed:'Payment failed (test). Nothing was recorded.', processing:'Processing…', testDone:'No real money was taken.',
-  demoOff:'Test payments are turned off by the owner.', monthWise:'Month-wise rent', mPaid:'Paid', mPart:'{a} left', mDue:'Pending', mUpcoming:'Upcoming', from:'From', logout:'Log out' },
+  demoOff:'Test payments are turned off by the owner.', youPaid:'You have paid', mOnline:'Online', mUpi:'UPI', mCash:'Cash', mBank:'Bank', mOther:'Other', secDeposit:'Security deposit', depPaid:'Paid', depDue:'{a} pending', monthWise:'Month-wise rent', mPaid:'Paid', mPart:'{a} left', mDue:'Pending', mUpcoming:'Upcoming', from:'From', logout:'Log out' },
  hi:{ hello:'नमस्ते {n}', due:'बकाया रकम', dueSince:'{d} से बाकी', dueToday:'आज देना है', allPaid:'सब चुका दिया', advance:'एडवांस जमा', upcoming:'अगला किराया {a}, {d} तारीख को',
   payOnline:'{a} ऑनलाइन दें', onlineSub:'UPI · कार्ड · नेट बैंकिंग — Razorpay से सुरक्षित', payUpi:'UPI ऐप से दें', upiSub:'सीधे मालिक को जाएगा',
   amount:'रकम (₹)', change:'रकम बदलें', payAdvance:'अगले महीने का एडवांस दें',
@@ -123,7 +123,7 @@ const L = {
   badAmt:'₹1 से ₹5,00,000 के बीच रकम लिखें।', netErr:'नेटवर्क की दिक्कत। फिर से कोशिश करें।', left:'आप कमरा छोड़ चुके हैं', powered:'DueDesk द्वारा', checking:'देख रहे हैं…', payOnlineTest:'{a} ऑनलाइन दें (टेस्ट)', testSub:'डेमो पेमेंट — असली पैसे नहीं कटेंगे', testCheckout:'चेकआउट', testMode:'टेस्ट मोड',
   testNote:'यह अभ्यास पेमेंट है। असली पैसे नहीं जाते। मालिक के डैशबोर्ड में टेस्ट पेमेंट के रूप में दिखेगा।', method:'पेमेंट का तरीका', card:'कार्ड', netbanking:'नेट बैंकिंग',
   payNow:'{a} दें', simFail:'फेल पेमेंट आज़माएं', testFailed:'पेमेंट फेल (टेस्ट)। कुछ दर्ज नहीं हुआ।', processing:'हो रहा है…', testDone:'असली पैसे नहीं कटे।',
-  demoOff:'मालिक ने टेस्ट पेमेंट बंद किए हैं।', monthWise:'महीने के हिसाब से किराया', mPaid:'दे दिया', mPart:'{a} बाकी', mDue:'बाकी', mUpcoming:'आने वाला', from:'से', logout:'लॉग आउट' }
+  demoOff:'मालिक ने टेस्ट पेमेंट बंद किए हैं।', youPaid:'आपने दिया', mOnline:'ऑनलाइन', mUpi:'UPI', mCash:'कैश', mBank:'बैंक', mOther:'अन्य', secDeposit:'सिक्योरिटी डिपॉज़िट', depPaid:'दे दिया', depDue:'{a} बाकी', monthWise:'महीने के हिसाब से किराया', mPaid:'दे दिया', mPart:'{a} बाकी', mDue:'बाकी', mUpcoming:'आने वाला', from:'से', logout:'लॉग आउट' }
 };
 const S = { d:null, lang:null, view:'home', amount:null, editAmt:false, receipt:null };
 const $ = s => document.querySelector(s);
@@ -200,6 +200,7 @@ function render(){
       <div>${status()}</div></div>
       ${due <= 0 && d.active ? `<div class="sub">${esc(t('upcoming',{a:money(d.rent), d:d.due_day}))}</div>` : ''}
     </div>
+    ${summary()}
     ${pend}
     ${canPay ? `<div class="card stack">
       ${S.editAmt ? `<div><label for="amt">${esc(t('amount'))}</label><div class="amtrow"><span>₹</span><input id="amt" type="number" inputmode="numeric" min="1" max="500000" step="1" value="${amt}"></div></div>`
@@ -223,6 +224,17 @@ function monthWise(){
     if (c.k !== 'rent') continue;
     out.push({ d: c.d, n: c.n, l: c.l, amount: a, left: a - cov, status: cov >= a ? 'paid' : cov > 0 ? 'part' : (c.d > td ? 'upcoming' : 'due') }); }
   return out.reverse();
+}
+function summary(){
+  const d = S.d, dep = Number(d.deposit || 0), got = Number(d.deposit_received || 0);
+  const by = {}; (d.history || []).filter(x => x.k === 'pay' && x.m !== 'deposit').forEach(x => { by[x.m] = (by[x.m] || 0) + Number(x.a); });
+  const modes = Object.entries(by).filter(([,v]) => v > 0).sort((a,b) => b[1] - a[1]);
+  if (!modes.length && !dep && !got) return '';
+  const name = m => t({online:'mOnline',upi:'mUpi',cash:'mCash',bank:'mBank'}[m] || 'mOther');
+  return `<div class="card stack">
+    ${modes.length ? `<div class="kv"><span>${esc(t('youPaid'))}</span><span class="num" style="text-align:right">${modes.map(([m,v]) => `${esc(name(m))} ${money(v)}`).join(' · ')}</span></div>` : ''}
+    ${dep || got ? `<div class="kv"><span>${esc(t('secDeposit'))}</span><span class="num" style="text-align:right">${money(got)} / ${money(dep)} ${got >= dep ? `<span class="chip good">✓ ${esc(t('depPaid'))}</span>` : `<span class="chip warn">${esc(t('depDue',{a:money(dep - got)}))}</span>`}</span></div>` : ''}
+  </div>`;
 }
 function months(){
   const ms = monthWise().slice(0, 12);

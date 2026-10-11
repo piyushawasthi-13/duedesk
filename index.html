@@ -305,7 +305,13 @@ const I18N = {
  }
 };
 Object.assign(I18N.en, {
-  dashboard:'Dashboard', payments:'Payments', testTag:'test', demoTitle:'Test payments (demo)', demoHelp:'Until Razorpay is connected, tenants can try "Pay online (test)". No real money moves; it shows here marked as test.', roleOwner:'PG owner', roleTenant:'Tenant', iAm:'I am a', tenantLogin:'Tenant login', tenantTag:'See your monthly rent and pay online.',
+  dashboard:'Dashboard', payments:'Payments', depHint:'Usually 1 month\'s rent', dueHint:'1 = rent due on the 1st of every month',
+  joinBoxEmpty:'Enter rent and joining date to see what to collect at joining.', atJoining:'To collect at joining', firstMonthPart:'First month ({a} – {b}, {n} days)',
+  firstMonthFull:'First month ({a} – {b})', totalJoin:'Total at joining', thenEvery:'Then {r} every month on day {d}.', paidAtJoin:'Paid at joining',
+  fullCash:'All in cash', fullUpi:'All by UPI', rentCash:'Rent · cash (₹)', rentUpi:'Rent · UPI (₹)', depCash:'Deposit · cash (₹)', depUpi:'Deposit · UPI (₹)',
+  stillToCollect:'Still to collect: {a}', allCollected:'Everything collected at joining', atJoiningNote:'Paid at joining',
+  rentPaidBy:'Rent paid', secDeposit:'Security deposit', depAgreed:'Agreed', depReceived:'Received', depUsed:'Used for dues', depLeftShort:'left',
+  depPendingChip:'{a} pending', depFull:'Received', recordDeposit:'Record deposit', depFormHelp:'Agreed {a} · received so far {b}.', depCol:'Deposit', testTag:'test', demoTitle:'Test payments (demo)', demoHelp:'Until Razorpay is connected, tenants can try "Pay online (test)". No real money moves; it shows here marked as test.', roleOwner:'PG owner', roleTenant:'Tenant', iAm:'I am a', tenantLogin:'Tenant login', tenantTag:'See your monthly rent and pay online.',
   pin:'PIN (4–6 digits)', pinHelp:'Your PG owner gives you the PIN. Ask them if you don\'t have one.', badPhone:'Enter your 10-digit mobile number.', badPin:'PIN must be 4 to 6 digits.',
   badTenantLogin:'Wrong phone number or PIN. Ask your PG owner to check.', pickRoom:'Choose your room', noRoom:'No room linked yet', noRoomHelp:'Ask your PG owner to turn on your login again.',
   monthWise:'Month-wise rent', mPaid:'Paid', mPart:'{a} left', mDue:'Pending', mUpcoming:'Upcoming', daysN:'{n} days', rentOf:'Rent · {m}', paidOfN:'{a} of {b} paid',
@@ -330,7 +336,13 @@ Object.assign(I18N.en, {
   greeting:'Hello{n}', todayIs:'{d}'
 });
 Object.assign(I18N.hi, {
-  dashboard:'डैशबोर्ड', payments:'पेमेंट', testTag:'टेस्ट', demoTitle:'टेस्ट पेमेंट (डेमो)', demoHelp:'Razorpay जुड़ने तक किरायेदार "ऑनलाइन दें (टेस्ट)" आज़मा सकते हैं। असली पैसे नहीं जाते; यहां टेस्ट के रूप में दिखेगा।', roleOwner:'पीजी मालिक', roleTenant:'किरायेदार', iAm:'मैं हूँ', tenantLogin:'किरायेदार लॉग इन', tenantTag:'अपना महीने का किराया देखें और ऑनलाइन दें।',
+  dashboard:'डैशबोर्ड', payments:'पेमेंट', depHint:'आमतौर पर 1 महीने का किराया', dueHint:'1 = हर महीने 1 तारीख को किराया',
+  joinBoxEmpty:'जॉइनिंग पर कितना लेना है देखने के लिए किराया और तारीख लिखें।', atJoining:'जॉइनिंग पर लेना है', firstMonthPart:'पहला महीना ({a} – {b}, {n} दिन)',
+  firstMonthFull:'पहला महीना ({a} – {b})', totalJoin:'जॉइनिंग पर कुल', thenEvery:'फिर हर महीने {d} तारीख को {r}।', paidAtJoin:'जॉइनिंग पर मिला',
+  fullCash:'सब कैश में', fullUpi:'सब UPI से', rentCash:'किराया · कैश (₹)', rentUpi:'किराया · UPI (₹)', depCash:'डिपॉज़िट · कैश (₹)', depUpi:'डिपॉज़िट · UPI (₹)',
+  stillToCollect:'अभी लेना बाकी: {a}', allCollected:'जॉइनिंग पर सब मिल गया', atJoiningNote:'जॉइनिंग पर दिया',
+  rentPaidBy:'किराया दिया', secDeposit:'सिक्योरिटी डिपॉज़िट', depAgreed:'तय', depReceived:'मिला', depUsed:'बकाये में लगा', depLeftShort:'बचा',
+  depPendingChip:'{a} बाकी', depFull:'मिल गया', recordDeposit:'डिपॉज़िट दर्ज करें', depFormHelp:'तय {a} · अब तक मिला {b}।', depCol:'डिपॉज़िट', testTag:'टेस्ट', demoTitle:'टेस्ट पेमेंट (डेमो)', demoHelp:'Razorpay जुड़ने तक किरायेदार "ऑनलाइन दें (टेस्ट)" आज़मा सकते हैं। असली पैसे नहीं जाते; यहां टेस्ट के रूप में दिखेगा।', roleOwner:'पीजी मालिक', roleTenant:'किरायेदार', iAm:'मैं हूँ', tenantLogin:'किरायेदार लॉग इन', tenantTag:'अपना महीने का किराया देखें और ऑनलाइन दें।',
   pin:'PIN (4–6 अंक)', pinHelp:'PIN आपके पीजी मालिक देंगे। न हो तो उनसे मांगें।', badPhone:'अपना 10 अंकों का मोबाइल नंबर लिखें।', badPin:'PIN 4 से 6 अंकों का होना चाहिए।',
   badTenantLogin:'फोन नंबर या PIN गलत है। पीजी मालिक से पूछें।', pickRoom:'अपना कमरा चुनें', noRoom:'अभी कोई कमरा जुड़ा नहीं', noRoomHelp:'पीजी मालिक से लॉग इन फिर से चालू करने को कहें।',
   monthWise:'महीने के हिसाब से किराया', mPaid:'दे दिया', mPart:'{a} बाकी', mDue:'बाकी', mUpcoming:'आने वाला', daysN:'{n} दिन', rentOf:'किराया · {m}', paidOfN:'{b} में से {a} ने दिया',
@@ -368,7 +380,7 @@ const nf = new Intl.NumberFormat('en-IN',{maximumFractionDigits:0});
 const money = n => '₹'+nf.format(Math.abs(Math.round(Number(n)||0)));
 const S = { session:null, owner:null, props:[], pid:'all', tenants:[], charges:[], payments:[], claims:[], plans:[], gw:{connected:false},
             tab:'home', q:'', filter:'all', authMode:'login', authMsg:'', loaded:false, repMonth:today().slice(0,7), cycle:'monthly',
-            vapid:null, recovery:false, fresh:new Set(), live:false, synced:false, logins:{}, authRole:(location.hash==='#tenant'?'tenant':(()=>{ try{ return localStorage.getItem('dd_role')||'owner'; }catch(e){ return 'owner'; } })()) };
+            vapid:null, deposits:[], recovery:false, fresh:new Set(), live:false, synced:false, logins:{}, authRole:(location.hash==='#tenant'?'tenant':(()=>{ try{ return localStorage.getItem('dd_role')||'owner'; }catch(e){ return 'owner'; } })()) };
 const store = { get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
 function lang(){ return (S.owner && S.owner.language) || store.get('dd_lang') || 'en'; }
 function t(k, v={}){ if(v.n===1 && (I18N[lang()][k+'1'] ?? I18N.en[k+'1'])) k=k+'1'; let s = (I18N[lang()][k] ?? I18N.en[k] ?? k); for(const x in v) s = s.replaceAll('{'+x+'}', v[x]); return s; }
@@ -409,17 +421,18 @@ async function loadAll(){
     sb.from('plans').select('*').order('price_monthly'),
     sb.rpc('my_gateway')]);
   for(const r of [o,p,pl]) if(r.error) throw r.error;
-  const [tb,tk,ch,pay,cl,lg]=await Promise.all([
+  const [tb,tk,ch,pay,cl,lg,dp]=await Promise.all([
     fetchAll(()=>sb.from('tenant_balances').select('*').order('name')),
     fetchAll(()=>sb.from('tenants').select('id,pay_token')),
     fetchAll(()=>sb.from('charges').select('id,tenant_id,kind,period_start,period_end,due_date,days_charged,amount,label').order('due_date')),
     fetchAll(()=>sb.from('payments').select('id,tenant_id,amount,paid_on,mode,source,ref,note,created_at').order('paid_on',{ascending:false}).order('created_at',{ascending:false})),
     sb.from('payment_claims').select('*').eq('status','pending').order('created_at',{ascending:false}).then(r=>r.data||[]),
-    sb.from('tenant_logins').select('tenant_id,phone').then(r=>r.data||[])]);
+    sb.from('tenant_logins').select('tenant_id,phone').then(r=>r.data||[]),
+    fetchAll(()=>sb.from('deposit_payments').select('id,tenant_id,amount,mode,paid_on,note').order('paid_on')).catch(()=>[])]);
   const tok=Object.fromEntries(tk.map(x=>[x.id,x.pay_token]));
   tb.forEach(x=>x.pay_token=tok[x.tenant_id]);
   S.owner=o.data; S.props=p.data||[]; S.plans=pl.data||[]; S.gw=(gw&&gw.data)||{connected:false};
-  S.charges=ch; S.payments=pay; S.tenants=tb; S.claims=cl; S.logins=Object.fromEntries(lg.map(x=>[x.tenant_id,x.phone]));
+  S.charges=ch; S.payments=pay; S.tenants=tb; S.claims=cl; S.logins=Object.fromEntries(lg.map(x=>[x.tenant_id,x.phone])); S.deposits=dp;
   if(S.pid!=='all' && !S.props.some(x=>x.id===S.pid)) S.pid='all';
   enrich(); S.loaded=true;
   store.set('dd_cache_'+uid, JSON.stringify({o:S.owner,p:S.props,pl:S.plans,tb,ch,pay,cl,gw:S.gw}));
@@ -435,7 +448,10 @@ function enrich(){
   S.tenants.forEach(x=>{
     const g=by[x.tenant_id]||{ch:[],pay:[]}; x.ledger=g;
     x.bal=Number(x.balance); x.dueNow=Number(x.due_now);
-    x.depLeft=Number(x.security_deposit)-Number(x.deposit_used);
+    x.depReceived=Number(x.deposit_received||0); x.depLeft=x.depReceived-Number(x.deposit_used);
+    x.depPending=Math.max(0,Number(x.security_deposit)-x.depReceived);
+    x.depList=(S.deposits||[]).filter(d=>d.tenant_id===x.tenant_id);
+    x.paidBy={}; g.pay.forEach(p=>{ if(p.mode==='deposit') return; const k=p.mode; x.paidBy[k]=(x.paidBy[k]||0)+Number(p.amount); });
     let credit=g.pay.reduce((s,p)=>s+Number(p.amount),0) - g.ch.filter(c=>Number(c.amount)<0).reduce((s,c)=>s+Number(c.amount),0);
     let oldest=null;
     for(const c of g.ch){ const a=Number(c.amount); if(a<0) continue; if(credit>=a) credit-=a; else { oldest=c.due_date; break; } }
@@ -769,9 +785,9 @@ function membersBody(){
   if(!arr.length) return `<div class="card empty">${esc(visible().length?t('noHistory'):t('noMembers'))}</div>`;
   const multi=S.props.length>1&&S.pid==='all';
   return `<div class="card flush only-phone">${arr.map(x=>rowT(x)).join('')}</div>
-    <div class="card only-desk" style="padding:4px 8px"><table class="tbl"><thead><tr><th>${esc(t('memberCol'))}</th>${multi?`<th>${esc(t('placeCol'))}</th>`:''}<th class="r">${esc(t('rentCol'))}</th><th>${esc(t('statusCol'))}</th><th class="r">${esc(t('dueCol'))}</th><th class="r"></th></tr></thead><tbody>
+    <div class="card only-desk" style="padding:4px 8px"><table class="tbl"><thead><tr><th>${esc(t('memberCol'))}</th>${multi?`<th>${esc(t('placeCol'))}</th>`:''}<th class="r">${esc(t('rentCol'))}</th><th class="r">${esc(t('depCol'))}</th><th>${esc(t('statusCol'))}</th><th class="r">${esc(t('dueCol'))}</th><th class="r"></th></tr></thead><tbody>
     ${arr.map(x=>`<tr data-open="${x.tenant_id}" tabindex="0"><td><div class="row" style="gap:10px"><div class="avatar ${x.is_active?'':'off'}">${esc(x.name.charAt(0).toUpperCase())}</div><div><div style="font-weight:600">${esc(x.name)}</div><div class="sub">${esc([x.room,x.phone].filter(Boolean).join(' · '))}</div></div></div></td>
-      ${multi?`<td>${esc(propName(x))}</td>`:''}<td class="r num">${money(x.rent_amount)}</td><td>${statusChip(x)}</td>
+      ${multi?`<td>${esc(propName(x))}</td>`:''}<td class="r num">${money(x.rent_amount)}</td><td class="r num">${Number(x.security_deposit)>0?(x.depPending>0?`<span style="color:var(--warn)">${money(x.depReceived)} / ${money(x.security_deposit)}</span>`:`${money(x.depReceived)} ✓`):'—'}</td><td>${statusChip(x)}</td>
       <td class="r num" style="font-weight:700">${x.dueNow>0?money(x.dueNow):(x.bal<0?`<span style="color:var(--good)">+${money(x.bal)}</span>`:'—')}</td>
       <td class="r"><div class="row" style="gap:6px;justify-content:flex-end">${x.phone&&S.owner.notify_whatsapp?`<a class="iconbtn" data-stop target="_blank" rel="noopener" href="${esc(waLink(x))}" title="${esc(t('sendLink'))}" aria-label="${esc(t('sendLink'))}">${ICON.send}</a>`:''}<button class="iconbtn" data-copy="${x.tenant_id}" title="${esc(t('copyLink'))}" aria-label="${esc(t('copyLink'))}">${ICON.link}</button></div></td></tr>`).join('')}
     </tbody></table></div>`;
@@ -960,30 +976,65 @@ function memberForm(x){
    <div class="grid2"><div><label for="tp">${esc(t('phone'))}</label><input id="tp" type="tel" inputmode="tel" value="${esc(e?x.phone||'':'')}"></div>
    <div><label for="tr">${esc(t('room'))}</label><input id="tr" value="${esc(e?x.room||'':'')}"></div></div>
    ${e?'':`<div class="grid2"><div><label for="tm">${esc(t('rent'))}</label><input id="tm" type="number" inputmode="numeric" min="0" step="1" required></div>
-   <div><label for="td">${esc(t('deposit'))}</label><input id="td" type="number" inputmode="numeric" min="0" step="1" value="0"></div></div>`}
+   <div><label for="td">${esc(t('deposit'))}</label><input id="td" type="number" inputmode="numeric" min="0" step="1" value="0"><div class="sub" style="font-size:12px">${esc(t('depHint'))}</div></div></div>`}
    ${e?`<div><label for="td">${esc(t('deposit'))}</label><input id="td" type="number" inputmode="numeric" min="0" step="1" value="${Number(x.security_deposit)}"></div>`:''}
    <div class="grid2"><div><label for="tj">${esc(t('joinDate'))}</label><input id="tj" type="date" value="${e?x.join_date:today()}" required></div>
-   <div><label for="tdd">${esc(t('dueDay'))}</label><input id="tdd" type="number" inputmode="numeric" min="1" max="31" value="${e?x.due_day:new Date().getDate()}" required></div></div>
+   <div><label for="tdd">${esc(t('dueDay'))}</label><input id="tdd" type="number" inputmode="numeric" min="1" max="31" value="${e?x.due_day:1}" required>${e?'':`<div class="sub" style="font-size:12px">${esc(t('dueHint'))}</div>`}</div></div>
    ${e?`<div class="sub" id="jw" hidden>${esc(t('joinWarn'))}</div>`:''}
    <div><label for="tnote">${esc(t('note'))}</label><input id="tnote" value="${esc(e?x.note||'':'')}"></div>
    ${e?`<label class="switch"><span>${esc(t('memberAlerts'))}</span><input type="checkbox" id="tne" ${x.notify_enabled?'checked':''}></label>`:''}
+   ${e?'':`<div class="card stack" id="joinBox" style="padding:12px 14px;background:var(--bg)" aria-live="polite"></div>
+   <div class="card stack" style="padding:12px 14px">
+     <div class="row sb wrap"><b>${esc(t('paidAtJoin'))}</b><div class="row" style="gap:6px"><button type="button" class="btn xs soft" data-fill="cash">${esc(t('fullCash'))}</button><button type="button" class="btn xs soft" data-fill="upi">${esc(t('fullUpi'))}</button></div></div>
+     <div class="grid2"><div><label for="jrc">${esc(t('rentCash'))}</label><input id="jrc" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div>
+       <div><label for="jru">${esc(t('rentUpi'))}</label><input id="jru" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div></div>
+     <div class="grid2"><div><label for="jdc">${esc(t('depCash'))}</label><input id="jdc" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div>
+       <div><label for="jdu">${esc(t('depUpi'))}</label><input id="jdu" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div></div>
+     <div class="sub" id="joinLeft"></div></div>`}
    <div class="sub" id="prev" aria-live="polite"></div>
    <div class="grid2"><button type="button" class="btn ghost" id="cx">${esc(t('cancel'))}</button><button class="btn" id="sv">${esc(t('save'))}</button></div></form>`;
 }
 function openAddTenant(){
   if(!access().ok) return openPlans();
   sheet(memberForm(null));
-  const upd=()=>{const r=Number($('#tm').value), j=$('#tj').value, d=Number($('#tdd').value);
-    $('#prev').textContent=(r>0&&j&&d>=1&&d<=31)?(x=>t('firstCharge',{a:money(x.amt),n:x.days,r:money(r),d}))(firstChargePreview(r,j,d)):'';};
-  ['tm','tj','tdd'].forEach(i=>$('#'+i).oninput=upd);
-  $('#tj').onchange=()=>{ const j=$('#tj').value; if(j) $('#tdd').value=P(j).getDate(); upd(); };
+  let depTouched=false;
+  const num=id=>Math.max(0,Math.round(Number($('#'+id).value)||0));
+  const calc=()=>{ const r=num('tm'), j=$('#tj').value, d=Number($('#tdd').value), dep=num('td');
+    if(!(r>0&&j&&d>=1&&d<=31)) return null;
+    const f=firstChargePreview(r,j,d), cs=cycleStart(j,d), ce=addDays(nextAnchor(cs,d),-1);
+    return {r,j,d,dep,first:f.amt,days:f.days,full:f.days===dayDiff(cs,ce)+1,end:ce}; };
+  const upd=()=>{
+    if(!depTouched) $('#td').value=$('#tm').value;
+    const c=calc(), box=$('#joinBox');
+    if(!c){ box.innerHTML=`<div class="sub">${esc(t('joinBoxEmpty'))}</div>`; $('#joinLeft').textContent=''; $('#prev').textContent=''; return; }
+    box.innerHTML=`<b>${esc(t('atJoining'))}</b>
+      <div class="kv"><span>${esc(c.full?t('firstMonthFull',{a:fdate(c.j),b:fdate(c.end)}):t('firstMonthPart',{a:fdate(c.j),b:fdate(c.end),n:c.days}))}</span><span class="num">${money(c.first)}</span></div>
+      <div class="kv"><span>${esc(t('deposit').replace(/\s*\(₹\)/,''))}</span><span class="num">${money(c.dep)}</span></div>
+      <div class="kv" style="border-top:1px solid var(--line);padding-top:8px"><span style="color:var(--ink);font-weight:600">${esc(t('totalJoin'))}</span><span class="num" style="font-weight:700;font-size:18px">${money(c.first+c.dep)}</span></div>
+      <div class="sub">${esc(t('thenEvery',{r:money(c.r),d:c.d}))}</div>`;
+    const paid=num('jrc')+num('jru'), dpaid=num('jdc')+num('jdu'), left=Math.max(0,c.first-paid)+Math.max(0,c.dep-dpaid);
+    $('#joinLeft').innerHTML = left>0 ? esc(t('stillToCollect',{a:money(left)})) : `<span style="color:var(--good);font-weight:600">✓ ${esc(t('allCollected'))}</span>`;
+    $('#prev').textContent='';
+  };
+  ['tm','tj','tdd','jrc','jru','jdc','jdu'].forEach(i=>$('#'+i).oninput=upd);
+  $('#td').oninput=()=>{ depTouched=true; upd(); };
+  $$('[data-fill]').forEach(btn=>btn.onclick=()=>{ const c=calc(); if(!c) return toast(t('joinBoxEmpty')); const m=btn.dataset.fill;
+    $('#jrc').value=m==='cash'?c.first:''; $('#jru').value=m==='upi'?c.first:''; $('#jdc').value=m==='cash'&&c.dep?c.dep:''; $('#jdu').value=m==='upi'&&c.dep?c.dep:''; upd(); });
+  upd();
   $('#cx').onclick=closeSheet;
   $('#tForm').onsubmit=async e=>{e.preventDefault(); $('#sv').disabled=true;
-    const r=await sb.from('tenants').insert({owner_id:S.session.user.id,property_id:$('#tpp')?$('#tpp').value:S.props[0].id,name:$('#tn').value.trim(),
-      phone:$('#tp').value.trim()||null,room:$('#tr').value.trim()||null,rent_amount:Number($('#tm').value),security_deposit:Number($('#td').value||0),
-      join_date:$('#tj').value,due_day:Number($('#tdd').value),note:$('#tnote').value.trim()||null});
+    const uid=S.session.user.id, j=$('#tj').value;
+    const r=await sb.from('tenants').insert({owner_id:uid,property_id:$('#tpp')?$('#tpp').value:S.props[0].id,name:$('#tn').value.trim(),
+      phone:$('#tp').value.trim()||null,room:$('#tr').value.trim()||null,rent_amount:num('tm'),security_deposit:num('td'),
+      join_date:j,due_day:Number($('#tdd').value),note:$('#tnote').value.trim()||null}).select('id').single();
     if(r.error){ $('#sv').disabled=false; const m=errText(r.error); if(m===t('limitReached')){ closeSheet(); toast(m); return openPlans(); } return toast(m); }
-    closeSheet(); await refresh(); toast(t('saved')); };
+    const tid=r.data.id, on=j<today()?j:today(), note=t('atJoiningNote');
+    const pays=[['jrc','cash'],['jru','upi']].filter(([i])=>num(i)>0).map(([i,m])=>({owner_id:uid,tenant_id:tid,amount:num(i),mode:m,paid_on:on,note}));
+    const deps=[['jdc','cash'],['jdu','upi']].filter(([i])=>num(i)>0).map(([i,m])=>({owner_id:uid,tenant_id:tid,amount:num(i),mode:m,paid_on:on,note}));
+    const errs=[];
+    if(pays.length){ const x=await sb.from('payments').insert(pays); if(x.error) errs.push(errText(x.error)); }
+    if(deps.length){ const x=await sb.from('deposit_payments').insert(deps); if(x.error) errs.push(errText(x.error)); }
+    closeSheet(); await refresh(); toast(errs.length?errs[0]:t('saved')); };
 }
 function openEdit(x){
   sheet(memberForm(x));
@@ -1024,7 +1075,15 @@ function openTenant(id){
       <a class="btn soft sm" href="tel:${esc(x.phone)}">${esc(t('call'))}</a>
       ${S.owner.notify_sms?`<a class="btn soft sm" href="sms:${esc(x.phone)}?body=${canRemind?msg:''}">${esc(t('sms'))}</a>`:''}
       ${S.owner.notify_whatsapp?`<a class="btn soft sm" target="_blank" rel="noopener" href="https://wa.me/${ph}${canRemind?'?text='+msg:''}">${esc(t('whatsapp'))}</a>`:''}</div>` : '';
-  const dep = Number(x.security_deposit)>0 ? `<div class="kv"><span>${esc(t('depositLeft'))}</span><span class="num">${money(x.depLeft)} / ${money(x.security_deposit)}</span></div>` : '';
+  const byMode=Object.entries(x.paidBy).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const dep = `<div class="kv" style="border-top:1px solid var(--line);margin-top:6px;padding-top:8px"><span>${esc(t('rentPaidBy'))}</span><span class="num" style="text-align:right">${byMode.length?byMode.map(([k,v])=>`${esc(modeLabel(k))} ${money(v)}`).join(' · '):'—'}</span></div>`;
+  const depCard = (Number(x.security_deposit)>0 || x.depReceived>0) ? `<div class="card stack" style="padding:12px 14px">
+      <div class="row sb"><b>${esc(t('secDeposit'))}</b>${x.depPending>0?`<span class="chip warn">${esc(t('depPendingChip',{a:money(x.depPending)}))}</span>`:`<span class="chip good">✓ ${esc(t('depFull'))}</span>`}</div>
+      <div class="kv"><span>${esc(t('depAgreed'))}</span><span class="num">${money(x.security_deposit)}</span></div>
+      <div class="kv"><span>${esc(t('depReceived'))}</span><span class="num" style="font-weight:600">${money(x.depReceived)}</span></div>
+      ${x.depList.length?`<div class="sub">${x.depList.map(d=>`${esc(fdate(d.paid_on))} · ${esc(modeLabel(d.mode))} ${money(d.amount)}`).join('<br>')}</div>`:''}
+      ${Number(x.deposit_used)>0?`<div class="kv"><span>${esc(t('depUsed'))}</span><span class="num">${money(x.deposit_used)} · ${esc(t('depLeftShort'))} ${money(x.depLeft)}</span></div>`:''}
+      <button class="btn sm soft" id="mDep" style="align-self:flex-start">+ ${esc(t('recordDeposit'))}</button></div>` : `<button class="btn sm ghost" id="mDep">+ ${esc(t('recordDeposit'))}</button>`;
   const settle = !x.is_active && x.bal>0 && x.depLeft>0 ? `<button class="btn soft block" id="settle">${esc(t('settle'))} · ${money(Math.min(x.bal,x.depLeft))}</button>` : '';
   const refund = !x.is_active && x.bal<=0 && (x.depLeft>0 || x.bal<0) ? `<div class="banner info"><span>${esc(t('refundDue'))}</span><b class="num">${money(x.depLeft + Math.max(0,-x.bal))}</b></div>` : '';
   const link = x.pay_token ? `<div class="card stack" style="padding:12px 14px"><div class="row sb"><b>${esc(t('payLink'))}</b><button class="linkbtn" id="mReset">${esc(t('resetLink'))}</button></div>
@@ -1034,7 +1093,7 @@ function openTenant(id){
       <div class="sub">${x.room?esc(x.room)+' · ':''}${S.props.length>1?esc(propName(x))+' · ':''}${money(x.rent_amount)}${esc(t('perMonth'))} · ${esc(t('dueOn',{d:x.due_day}))}</div>
       <div class="sub">${esc(t('joined',{d:fdate(x.join_date,true)}))}${x.left_date?' · '+esc(t('lastDay',{d:fdate(x.left_date,true)})):''}</div></div>${statusChip(x)}</div>
     <div class="card"><div class="row sb"><span class="sub">${esc(x.bal>0?t('pending'):t('balance'))}</span><span class="amt num" style="font-size:26px;color:var(${x.bal>0?'--bad':x.bal<0?'--good':'--ink'})">${x.bal<0?'+':''}${money(x.bal)}</span></div>${dep}</div>
-    ${refund}${loginCard(x)}${link}${acts}
+    ${refund}${depCard}${loginCard(x)}${link}${acts}
     <button class="btn block" id="pay">${esc(t('addPayment'))}</button>${settle}
     <div class="grid2"><button class="btn soft sm" id="mExtra">+ ${esc(t('extraCharge'))}</button><button class="btn soft sm" id="mWaive">− ${esc(t('waiver'))}</button></div>
     <div class="grid2"><button class="btn ghost sm" id="mRent">${esc(t('changeRent'))}</button><button class="btn ghost sm" id="mEdit">${esc(t('edit'))}</button></div>
@@ -1051,6 +1110,7 @@ function openTenant(id){
   $('#mShare').onclick=()=>shareStatement(x);
   if($('#mCopy')) $('#mCopy').onclick=()=>copyLink(x);
   if($('#mPin')) $('#mPin').onclick=()=>openPin(x);
+  if($('#mDep')) $('#mDep').onclick=()=>openDeposit(x);
   if($('#mLoginOff')) armed($('#mLoginOff'), async()=>{ const r=await callTL({action:'remove',tenant_id:x.tenant_id}); if(!r.ok) return toast(t('netErr')); await refresh(); openTenant(id); });
   if($('#mReset')) armed($('#mReset'), async()=>{ const r=await sb.rpc('new_pay_link',{p_tenant:x.tenant_id}); if(r.error) return toast(errText(r.error)); toast(t('resetDone')); await refresh(); openTenant(id); });
   if($('#mOut')) $('#mOut').onclick=()=>openMoveOut(x);
@@ -1110,6 +1170,20 @@ function openPay(x){
   $('#pForm').onsubmit=async e=>{e.preventDefault(); $('#sv').disabled=true;
     const mode=$('#pm').value; if(mode!=='deposit') store.set('dd_mode',mode);
     const r=await sb.from('payments').insert({owner_id:S.session.user.id,tenant_id:x.tenant_id,amount:Number($('#pa').value),mode,paid_on:$('#pd').value,note:$('#pnote').value.trim()||null});
+    if(r.error){ $('#sv').disabled=false; return toast(errText(r.error)); }
+    await refresh(); toast(t('saved')); openTenant(x.tenant_id); };
+}
+function openDeposit(x){
+  const modes=['cash','upi','bank','other'];
+  sheet(`<form id="dForm" class="stack"><h2>${esc(t('recordDeposit'))} · ${esc(x.name)}</h2>
+   <p class="sub" style="margin:0">${esc(t('depFormHelp',{a:money(x.security_deposit),b:money(x.depReceived)}))}</p>
+   <div><label for="da">${esc(t('amount'))}</label><input id="da" type="number" inputmode="numeric" min="1" step="1" required value="${x.depPending||''}"></div>
+   <div class="grid2"><div><label for="dm">${esc(t('mode'))}</label><select id="dm">${modes.map(m=>`<option value="${m}">${esc(t(m))}</option>`).join('')}</select></div>
+   <div><label for="dd2">${esc(t('paidOn'))}</label><input id="dd2" type="date" value="${today()}" max="${today()}" required></div></div>
+   <div class="grid2"><button type="button" class="btn ghost" id="cx">${esc(t('cancel'))}</button><button class="btn" id="sv">${esc(t('save'))}</button></div></form>`);
+  $('#cx').onclick=()=>openTenant(x.tenant_id);
+  $('#dForm').onsubmit=async e=>{ e.preventDefault(); $('#sv').disabled=true;
+    const r=await sb.from('deposit_payments').insert({owner_id:S.session.user.id,tenant_id:x.tenant_id,amount:Number($('#da').value),mode:$('#dm').value,paid_on:$('#dd2').value});
     if(r.error){ $('#sv').disabled=false; return toast(errText(r.error)); }
     await refresh(); toast(t('saved')); openTenant(x.tenant_id); };
 }
