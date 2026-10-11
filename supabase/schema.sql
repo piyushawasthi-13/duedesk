@@ -433,6 +433,7 @@ create trigger payments_before_trg before insert or update on payments
   for each row execute function payments_before();
 
 -- ---------- balances view ---------------------------------------------
+drop view if exists tenant_promises;
 drop view if exists tenant_balances;
 create view tenant_balances with (security_invoker = true) as
 select
@@ -1077,6 +1078,123 @@ language sql stable security definer set search_path = public as $$
     'deposit', t.security_deposit, 'deposit_received', b.deposit_received, 'deposit_used', b.deposit_used,
     'online', exists (select 1 from private.gateways g where g.owner_id = o.id),
     'demo', o.demo_pay and not exists (select 1 from private.gateways g where g.owner_id = o.id),
+    'history', coalesce((select jsonb_agg(h order by h->>'d' desc, h->>'k') from (
+        select jsonb_build_object('d', c.due_date, 'k', c.kind, 'a', c.amount, 'l', c.label, 'n', c.days_charged) h
+          from charges c where c.tenant_id = t.id
+        union all
+        select jsonb_build_object('d', y.paid_on, 'k', 'pay', 'a', y.amount, 'm', y.mode, 'ref', y.ref)
+          from payments y where y.tenant_id = t.id
+        order by 1 desc limit 300) x), '[]'::jsonb),
+    'deposits', coalesce((select jsonb_agg(jsonb_build_object('d', d.paid_on, 'a', d.amount, 'm', d.mode) order by d.paid_on)
+          from deposit_payments d where d.tenant_id = t.id), '[]'::jsonb),
+    'pending', coalesce((select jsonb_agg(jsonb_build_object('amount', c.amount, 'utr', c.utr, 'at', c.created_at) order by c.created_at desc)
+          from payment_claims c where c.tenant_id = t.id and c.status = 'pending'), '[]'::jsonb)
+  )
+  from tenants t
+  join properties p on p.id = t.property_id
+  join owners o on o.id = t.owner_id
+  join tenant_balances b on b.tenant_id = t.id
+  where t.pay_token = p_token and length(p_token) >= 24
+$$;
+
+
+-- =====================================================================
+-- PROMISE TO PAY ("I will pay on <date>")
+--   before the date: no daily alert · on the date: alert if unpaid · after: red if unpaid · paid: green
+-- =====================================================================
+create table if not exists payment_promises (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references owners(id) on delete cascade,
+  tenant_id uuid not null references tenants(id) on delete cascade,
+  promise_date date not null,
+  amount numeric(10,2) not null check (amount > 0),
+  note text,
+  created_by text not null default 'owner' check (created_by in ('owner','tenant')),
+  cancelled boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists payment_promises_tenant_idx on payment_promises(tenant_id, created_at desc);
+alter table payment_promises enable row level security;
+drop policy if exists "own promises" on payment_promises;
+create policy "own promises" on payment_promises for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+drop trigger if exists payment_promises_before_trg on payment_promises;
+create trigger payment_promises_before_trg before insert or update on payment_promises
+  for each row execute function deposit_payments_before();
+
+create or replace view tenant_promises with (security_invoker = true) as
+select distinct on (pr.tenant_id)
+  pr.id, pr.owner_id, pr.tenant_id, pr.promise_date, pr.amount, pr.note, pr.created_by, pr.created_at,
+  coalesce((select sum(y.amount) from payments y
+             where y.tenant_id = pr.tenant_id and y.mode <> 'deposit' and y.created_at >= pr.created_at), 0) as paid_since,
+  b.due_now,
+  (coalesce((select sum(y.amount) from payments y
+              where y.tenant_id = pr.tenant_id and y.mode <> 'deposit' and y.created_at >= pr.created_at), 0) >= pr.amount
+   or b.due_now <= 0) as kept
+from payment_promises pr
+join tenant_balances b on b.tenant_id = pr.tenant_id
+where not pr.cancelled
+order by pr.tenant_id, pr.created_at desc;
+revoke all on tenant_promises from anon;
+
+create or replace function svc_due_digest() returns table (
+  owner_id uuid, language text, members int, amount numeric, names text)
+language sql stable security definer set search_path = public as $$
+  select o.id, o.language, count(*)::int, sum(b.due_now),
+         string_agg(b.name ||
+           case when pr.promise_date = today_ist() then case when o.language = 'hi' then ' (आज का वादा)' else ' (promised today)' end
+                when pr.promise_date < today_ist() then case when o.language = 'hi' then ' (वादा टूटा)' else ' (missed promise)' end
+                else '' end,
+           ', ' order by (pr.promise_date = today_ist()) desc nulls last, b.due_now desc)
+    from owners o
+    join tenant_balances b on b.owner_id = o.id
+    left join tenant_promises pr on pr.tenant_id = b.tenant_id and not pr.kept
+   where o.notify_push and b.due_now > 0 and b.notify_enabled
+     and (pr.tenant_id is null or pr.promise_date <= today_ist())
+     and exists (select 1 from push_subscriptions s where s.owner_id = o.id)
+   group by o.id, o.language
+$$;
+revoke execute on function svc_due_digest() from public, anon, authenticated;
+grant execute on function svc_due_digest() to service_role;
+
+create or replace function portal_promise(p_token text, p_date date, p_amount numeric) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare t tenants;
+begin
+  select * into t from tenants where pay_token = p_token and length(p_token) >= 24;
+  if not found then raise exception 'NOT_FOUND'; end if;
+  if p_date is null or p_date < today_ist() or p_date > today_ist() + 45 then raise exception 'BAD_DATE'; end if;
+  if p_amount is null or p_amount < 1 or p_amount > 500000 then raise exception 'BAD_AMOUNT'; end if;
+  if (select count(*) from payment_promises where tenant_id = t.id and created_by = 'tenant' and created_at > now() - interval '1 day') >= 5 then
+    raise exception 'TOO_MANY';
+  end if;
+  insert into payment_promises (owner_id, tenant_id, promise_date, amount, created_by)
+  values (t.owner_id, t.id, p_date, round(p_amount, 0), 'tenant');
+  return jsonb_build_object('ok', true);
+end $$;
+revoke execute on function portal_promise(text, date, numeric) from public;
+grant execute on function portal_promise(text, date, numeric) to anon, authenticated;
+
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'payment_promises') then
+    alter publication supabase_realtime add table public.payment_promises;
+  end if;
+end $$;
+
+-- tenant page: include the active promise
+create or replace function portal(p_token text) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object(
+    'name', t.name, 'room', t.room, 'place', p.name, 'category', p.category,
+    'owner', o.full_name, 'owner_phone', o.phone, 'upi', o.upi_id, 'lang', o.language,
+    'rent', t.rent_amount, 'due_day', t.due_day, 'active', t.is_active,
+    'balance', b.balance, 'due_now', b.due_now,
+    'deposit', t.security_deposit, 'deposit_received', b.deposit_received, 'deposit_used', b.deposit_used,
+    'online', exists (select 1 from private.gateways g where g.owner_id = o.id),
+    'demo', o.demo_pay and not exists (select 1 from private.gateways g where g.owner_id = o.id),
+    'promise', (select jsonb_build_object('date', pr.promise_date, 'amount', pr.amount, 'kept', pr.kept, 'by', pr.created_by)
+                  from tenant_promises pr where pr.tenant_id = t.id),
     'history', coalesce((select jsonb_agg(h order by h->>'d' desc, h->>'k') from (
         select jsonb_build_object('d', c.due_date, 'k', c.kind, 'a', c.amount, 'l', c.label, 'n', c.days_charged) h
           from charges c where c.tenant_id = t.id

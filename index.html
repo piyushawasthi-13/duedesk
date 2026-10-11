@@ -305,7 +305,15 @@ const I18N = {
  }
 };
 Object.assign(I18N.en, {
-  dashboard:'Dashboard', payments:'Payments', depHint:'Usually 1 month\'s rent', dueHint:'1 = rent due on the 1st of every month',
+  dashboard:'Dashboard', payments:'Payments', pKept:'Paid as promised', pUpcoming:'Promised {d}', pToday:'Promised today', pMissed:'Missed promise · {d}',
+  promises:'Promised payments', promisesSub:'Red = date passed, not paid · Green = paid', nMissed:'{n} missed', pByTenant:'Tenant said: will pay on {d}', pByOwner:'Will pay on {d}',
+  addPromise:'Add promise date', promiseT:'Promise to pay', promiseLine:'Will pay {a} on {d}', setByTenant:'Set by tenant', setByOwner:'Set by you', paidSince:'Paid since: {a}',
+  p_upcoming:'No daily alert until that date. You get an alert on the date if it is still unpaid.', p_today:'Today is the promised date. Remind them if it is not paid by evening.',
+  p_missed:'The date has passed and the amount is not paid. Back in daily alerts.', p_kept:'Paid. No alert will be sent.',
+  changeDate:'Change date', removePromise:'Remove', promiseHelp:'When a tenant says "I will pay on this date". Until then they are left out of the daily alert.',
+  payOnDate:'Will pay on', promiseToast:'{n} promised to pay {a} on {d}',
+  reminderPromiseToday:'Hi {name}, as promised, your {prop} rent of {amt} is due today. Please pay today. Thank you.',
+  reminderPromiseMissed:'Hi {name}, you had promised to pay your {prop} rent of {amt} on {d}. It is still pending. Please pay soon. Thank you.', depHint:'Usually 1 month\'s rent', dueHint:'1 = rent due on the 1st of every month',
   joinBoxEmpty:'Enter rent and joining date to see what to collect at joining.', atJoining:'To collect at joining', firstMonthPart:'First month ({a} – {b}, {n} days)',
   firstMonthFull:'First month ({a} – {b})', totalJoin:'Total at joining', thenEvery:'Then {r} every month on day {d}.', paidAtJoin:'Paid at joining',
   fullCash:'All in cash', fullUpi:'All by UPI', rentCash:'Rent · cash (₹)', rentUpi:'Rent · UPI (₹)', depCash:'Deposit · cash (₹)', depUpi:'Deposit · UPI (₹)',
@@ -336,7 +344,15 @@ Object.assign(I18N.en, {
   greeting:'Hello{n}', todayIs:'{d}'
 });
 Object.assign(I18N.hi, {
-  dashboard:'डैशबोर्ड', payments:'पेमेंट', depHint:'आमतौर पर 1 महीने का किराया', dueHint:'1 = हर महीने 1 तारीख को किराया',
+  dashboard:'डैशबोर्ड', payments:'पेमेंट', pKept:'वादे के अनुसार दिया', pUpcoming:'{d} का वादा', pToday:'आज का वादा', pMissed:'वादा टूटा · {d}',
+  promises:'वादा किए गए पेमेंट', promisesSub:'लाल = तारीख निकल गई, नहीं दिया · हरा = दे दिया', nMissed:'{n} टूटे', pByTenant:'किरायेदार ने कहा: {d} को देंगे', pByOwner:'{d} को देंगे',
+  addPromise:'देने की तारीख जोड़ें', promiseT:'पेमेंट का वादा', promiseLine:'{d} को {a} देंगे', setByTenant:'किरायेदार ने तय किया', setByOwner:'आपने तय किया', paidSince:'तब से दिया: {a}',
+  p_upcoming:'उस तारीख तक रोज़ का अलर्ट नहीं जाएगा। उस दिन तक न मिले तो अलर्ट आएगा।', p_today:'आज वादे की तारीख है। शाम तक न मिले तो याद दिलाएं।',
+  p_missed:'तारीख निकल गई और पैसे नहीं मिले। फिर से रोज़ के अलर्ट में है।', p_kept:'मिल गया। कोई अलर्ट नहीं जाएगा।',
+  changeDate:'तारीख बदलें', removePromise:'हटाएं', promiseHelp:'जब किरायेदार कहे "इस तारीख को दूंगा"। तब तक उसका रोज़ का अलर्ट नहीं जाएगा।',
+  payOnDate:'कब देंगे', promiseToast:'{n} ने {d} को {a} देने का वादा किया',
+  reminderPromiseToday:'नमस्ते {name}, वादे के अनुसार आपका {prop} का {amt} आज देना है। कृपया आज भुगतान करें। धन्यवाद।',
+  reminderPromiseMissed:'नमस्ते {name}, आपने {prop} का {amt} {d} को देने का वादा किया था। अभी बाकी है। कृपया जल्दी भुगतान करें। धन्यवाद।', depHint:'आमतौर पर 1 महीने का किराया', dueHint:'1 = हर महीने 1 तारीख को किराया',
   joinBoxEmpty:'जॉइनिंग पर कितना लेना है देखने के लिए किराया और तारीख लिखें।', atJoining:'जॉइनिंग पर लेना है', firstMonthPart:'पहला महीना ({a} – {b}, {n} दिन)',
   firstMonthFull:'पहला महीना ({a} – {b})', totalJoin:'जॉइनिंग पर कुल', thenEvery:'फिर हर महीने {d} तारीख को {r}।', paidAtJoin:'जॉइनिंग पर मिला',
   fullCash:'सब कैश में', fullUpi:'सब UPI से', rentCash:'किराया · कैश (₹)', rentUpi:'किराया · UPI (₹)', depCash:'डिपॉज़िट · कैश (₹)', depUpi:'डिपॉज़िट · UPI (₹)',
@@ -380,7 +396,7 @@ const nf = new Intl.NumberFormat('en-IN',{maximumFractionDigits:0});
 const money = n => '₹'+nf.format(Math.abs(Math.round(Number(n)||0)));
 const S = { session:null, owner:null, props:[], pid:'all', tenants:[], charges:[], payments:[], claims:[], plans:[], gw:{connected:false},
             tab:'home', q:'', filter:'all', authMode:'login', authMsg:'', loaded:false, repMonth:today().slice(0,7), cycle:'monthly',
-            vapid:null, deposits:[], recovery:false, fresh:new Set(), live:false, synced:false, logins:{}, authRole:(location.hash==='#tenant'?'tenant':(()=>{ try{ return localStorage.getItem('dd_role')||'owner'; }catch(e){ return 'owner'; } })()) };
+            vapid:null, deposits:[], promises:{}, recovery:false, fresh:new Set(), live:false, synced:false, logins:{}, authRole:(location.hash==='#tenant'?'tenant':(()=>{ try{ return localStorage.getItem('dd_role')||'owner'; }catch(e){ return 'owner'; } })()) };
 const store = { get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
 function lang(){ return (S.owner && S.owner.language) || store.get('dd_lang') || 'en'; }
 function t(k, v={}){ if(v.n===1 && (I18N[lang()][k+'1'] ?? I18N.en[k+'1'])) k=k+'1'; let s = (I18N[lang()][k] ?? I18N.en[k] ?? k); for(const x in v) s = s.replaceAll('{'+x+'}', v[x]); return s; }
@@ -421,18 +437,19 @@ async function loadAll(){
     sb.from('plans').select('*').order('price_monthly'),
     sb.rpc('my_gateway')]);
   for(const r of [o,p,pl]) if(r.error) throw r.error;
-  const [tb,tk,ch,pay,cl,lg,dp]=await Promise.all([
+  const [tb,tk,ch,pay,cl,lg,dp,pr]=await Promise.all([
     fetchAll(()=>sb.from('tenant_balances').select('*').order('name')),
     fetchAll(()=>sb.from('tenants').select('id,pay_token')),
     fetchAll(()=>sb.from('charges').select('id,tenant_id,kind,period_start,period_end,due_date,days_charged,amount,label').order('due_date')),
     fetchAll(()=>sb.from('payments').select('id,tenant_id,amount,paid_on,mode,source,ref,note,created_at').order('paid_on',{ascending:false}).order('created_at',{ascending:false})),
     sb.from('payment_claims').select('*').eq('status','pending').order('created_at',{ascending:false}).then(r=>r.data||[]),
     sb.from('tenant_logins').select('tenant_id,phone').then(r=>r.data||[]),
-    fetchAll(()=>sb.from('deposit_payments').select('id,tenant_id,amount,mode,paid_on,note').order('paid_on')).catch(()=>[])]);
+    fetchAll(()=>sb.from('deposit_payments').select('id,tenant_id,amount,mode,paid_on,note').order('paid_on')).catch(()=>[]),
+    sb.from('tenant_promises').select('*').then(r=>r.data||[])]);
   const tok=Object.fromEntries(tk.map(x=>[x.id,x.pay_token]));
   tb.forEach(x=>x.pay_token=tok[x.tenant_id]);
   S.owner=o.data; S.props=p.data||[]; S.plans=pl.data||[]; S.gw=(gw&&gw.data)||{connected:false};
-  S.charges=ch; S.payments=pay; S.tenants=tb; S.claims=cl; S.logins=Object.fromEntries(lg.map(x=>[x.tenant_id,x.phone])); S.deposits=dp;
+  S.charges=ch; S.payments=pay; S.tenants=tb; S.claims=cl; S.logins=Object.fromEntries(lg.map(x=>[x.tenant_id,x.phone])); S.deposits=dp; S.promises=Object.fromEntries(pr.map(x=>[x.tenant_id,x]));
   if(S.pid!=='all' && !S.props.some(x=>x.id===S.pid)) S.pid='all';
   enrich(); S.loaded=true;
   store.set('dd_cache_'+uid, JSON.stringify({o:S.owner,p:S.props,pl:S.plans,tb,ch,pay,cl,gw:S.gw}));
@@ -457,6 +474,9 @@ function enrich(){
     for(const c of g.ch){ const a=Number(c.amount); if(a<0) continue; if(credit>=a) credit-=a; else { oldest=c.due_date; break; } }
     x.oldest=oldest; x.late=oldest?dayDiff(oldest,td):null;
     x.months=monthWise(g.ch,g.pay,td);
+    x.promise=(S.promises||{})[x.tenant_id]||null;
+    if(x.promise){ const pd=x.promise.promise_date; x.pstate = x.promise.kept ? 'kept' : pd>td ? 'upcoming' : pd===td ? 'today' : 'missed'; }
+    else x.pstate=null;
     x.cur=x.months.find(m=>m.c.period_start<=td && td<=m.c.period_end) || null;
     if(x.dueNow>0) x.status = x.late>0 ? 'late' : 'today';
     else if(x.bal>0) x.status='soon';
@@ -679,6 +699,7 @@ function viewHome(){
     ${claims.length?`<div class="card" style="margin-top:16px;border-color:var(--info)"><div class="chead"><h3>${esc(t('waitingConfirm'))}</h3><span class="chip info">${claims.length}</span></div>${claims.map(claimRow).join('')}</div>`:''}
     <div class="dgrid">
       <div class="stack" style="gap:16px">
+        ${promiseCard(V)}
         ${rentMonthCard(V)}
         <div class="card"><div class="chead"><h3>${esc(t('needsAttention'))}</h3><span class="amt num">${money(toCollect)}</span></div>
           ${hot.length?hot.map(x=>rowT(x,false,true)).join(''):`<div class="empty">${esc(t('allClear'))}</div>`}</div>
@@ -691,6 +712,27 @@ function viewHome(){
           ${chart(pays)}</div>
       </div>
     </div>${fab()}`;
+}
+function promiseChip(x){
+  if(!x.pstate) return '';
+  const d=fdate(x.promise.promise_date);
+  if(x.pstate==='kept') return `<span class="chip good">✓ ${esc(t('pKept'))}</span>`;
+  if(x.pstate==='upcoming') return `<span class="chip info">🗓 ${esc(t('pUpcoming',{d}))}</span>`;
+  if(x.pstate==='today') return `<span class="chip warn">${esc(t('pToday'))}</span>`;
+  return `<span class="chip bad">${esc(t('pMissed',{d}))}</span>`;
+}
+function promiseCard(V){
+  const td=today(), weekAgo=addDays(td,-7);
+  const rows=V.filter(x=>x.promise && (x.pstate!=='kept' || x.promise.promise_date>=weekAgo));
+  if(!rows.length) return '';
+  const rank={missed:0,today:1,upcoming:2,kept:3};
+  rows.sort((a,b)=>rank[a.pstate]-rank[b.pstate] || (a.promise.promise_date<b.promise.promise_date?-1:1));
+  const missed=rows.filter(x=>x.pstate==='missed').length;
+  return `<div class="card" ${missed?'style="border-color:var(--bad)"':''}><div class="chead"><div><h3>${esc(t('promises'))}</h3><div class="sub">${esc(t('promisesSub'))}</div></div>${missed?`<span class="chip bad">${esc(t('nMissed',{n:missed}))}</span>`:''}</div>
+    ${rows.map(x=>`<div class="item" data-open="${x.tenant_id}" role="button" tabindex="0" style="${x.pstate==='missed'?'background:var(--bad-soft);margin:0 -16px;padding:12px 16px':x.pstate==='kept'?'background:var(--good-soft);margin:0 -16px;padding:12px 16px':''}">
+      <div class="avatar">${esc(x.name.charAt(0).toUpperCase())}</div>
+      <div class="grow"><div class="ell" style="font-weight:600">${esc(x.name)}</div><div class="sub ell">${esc(t(x.promise.created_by==='tenant'?'pByTenant':'pByOwner',{d:fdate(x.promise.promise_date,true)}))}</div></div>
+      <div style="text-align:right"><div class="num" style="font-weight:700">${money(x.promise.amount)}</div>${promiseChip(x)}</div></div>`).join('')}</div>`;
 }
 function rentMonthCard(V){
   const td=today(), rows=V.filter(x=>x.is_active && x.cur);
@@ -705,7 +747,7 @@ function rentMonthCard(V){
     <div style="margin-top:6px">${rows.map(x=>`<div class="item" data-open="${x.tenant_id}" role="button" tabindex="0">
       <div class="avatar">${esc(x.name.charAt(0).toUpperCase())}</div>
       <div class="grow"><div class="ell" style="font-weight:600">${esc(x.name)}${S.logins[x.tenant_id]?` <span class="chip info" title="${esc(t('loginOn'))}">${esc(t('appUser'))}</span>`:''}</div><div class="sub ell">${esc([x.room,mRange(x.cur.c)].filter(Boolean).join(' · '))}</div></div>
-      <div style="text-align:right"><div class="num" style="font-weight:700">${money(x.cur.amount)}</div>${mChip(x.cur)}</div></div>`).join('')}</div></div>`;
+      <div style="text-align:right"><div class="num" style="font-weight:700">${money(x.cur.amount)}</div>${x.cur.status!=='paid'&&x.pstate&&x.pstate!=='kept'?promiseChip(x):mChip(x.cur)}</div></div>`).join('')}</div></div>`;
 }
 function claimRow(c){
   const x=byTenant()[c.tenant_id]||{name:'?'};
@@ -751,6 +793,7 @@ function bindChart(){
 }
 function statusChip(x){
   if(!x.is_active) return `<span class="chip off">${esc(t('leftChip'))}</span>`;
+  const pc=promiseChip(x); if(pc && x.pstate!=='kept' && x.dueNow>0) return pc;
   if(x.join_date>today() && x.bal<=0) return `<span class="chip mute">${esc(t('starts',{d:fdate(x.join_date)}))}</span>`;
   if(x.status==='late') return `<span class="chip bad">${esc(x.late===1?t('lateOne'):t('late',{n:x.late}))}</span>`;
   if(x.status==='today') return `<span class="chip warn">${esc(t('dueToday'))}</span>`;
@@ -1052,7 +1095,8 @@ function openEdit(x){
 // ---------- member detail ----------
 function remindText(x){
   const amt=money(x.dueNow>0?x.dueNow:x.bal), prop=propName(x);
-  let s = x.status==='late' ? t('reminder',{name:x.name,prop,amt,date:fdate(x.oldest)}) : t('reminderToday',{name:x.name,prop,amt});
+  let s = x.pstate==='today' ? t('reminderPromiseToday',{name:x.name,prop,amt}) : x.pstate==='missed' ? t('reminderPromiseMissed',{name:x.name,prop,amt,d:fdate(x.promise.promise_date)})
+        : x.status==='late' ? t('reminder',{name:x.name,prop,amt,date:fdate(x.oldest)}) : t('reminderToday',{name:x.name,prop,amt});
   if(x.pay_token && (S.gw.connected || S.owner.upi_id)) s += '\n' + t('payHere',{u:payUrl(x)});
   else if(S.owner.upi_id) s += '\n' + t('upiLine',{u:S.owner.upi_id});
   return s;
@@ -1093,7 +1137,7 @@ function openTenant(id){
       <div class="sub">${x.room?esc(x.room)+' · ':''}${S.props.length>1?esc(propName(x))+' · ':''}${money(x.rent_amount)}${esc(t('perMonth'))} · ${esc(t('dueOn',{d:x.due_day}))}</div>
       <div class="sub">${esc(t('joined',{d:fdate(x.join_date,true)}))}${x.left_date?' · '+esc(t('lastDay',{d:fdate(x.left_date,true)})):''}</div></div>${statusChip(x)}</div>
     <div class="card"><div class="row sb"><span class="sub">${esc(x.bal>0?t('pending'):t('balance'))}</span><span class="amt num" style="font-size:26px;color:var(${x.bal>0?'--bad':x.bal<0?'--good':'--ink'})">${x.bal<0?'+':''}${money(x.bal)}</span></div>${dep}</div>
-    ${refund}${depCard}${loginCard(x)}${link}${acts}
+    ${refund}${promiseBlock(x)}${depCard}${loginCard(x)}${link}${acts}
     <button class="btn block" id="pay">${esc(t('addPayment'))}</button>${settle}
     <div class="grid2"><button class="btn soft sm" id="mExtra">+ ${esc(t('extraCharge'))}</button><button class="btn soft sm" id="mWaive">− ${esc(t('waiver'))}</button></div>
     <div class="grid2"><button class="btn ghost sm" id="mRent">${esc(t('changeRent'))}</button><button class="btn ghost sm" id="mEdit">${esc(t('edit'))}</button></div>
@@ -1111,6 +1155,8 @@ function openTenant(id){
   if($('#mCopy')) $('#mCopy').onclick=()=>copyLink(x);
   if($('#mPin')) $('#mPin').onclick=()=>openPin(x);
   if($('#mDep')) $('#mDep').onclick=()=>openDeposit(x);
+  if($('#mPromise')) $('#mPromise').onclick=()=>openPromise(x);
+  if($('#mPromiseOff')) armed($('#mPromiseOff'), async()=>{ const r=await sb.from('payment_promises').update({cancelled:true}).eq('id',x.promise.id); if(r.error) return toast(errText(r.error)); await refresh(); openTenant(id); });
   if($('#mLoginOff')) armed($('#mLoginOff'), async()=>{ const r=await callTL({action:'remove',tenant_id:x.tenant_id}); if(!r.ok) return toast(t('netErr')); await refresh(); openTenant(id); });
   if($('#mReset')) armed($('#mReset'), async()=>{ const r=await sb.rpc('new_pay_link',{p_tenant:x.tenant_id}); if(r.error) return toast(errText(r.error)); toast(t('resetDone')); await refresh(); openTenant(id); });
   if($('#mOut')) $('#mOut').onclick=()=>openMoveOut(x);
@@ -1123,6 +1169,29 @@ function openTenant(id){
 }
 const appUrl = () => new URL('./', location.href).href;
 function loginText(x, pin){ return t('loginMsg',{name:x.name,prop:propName(x),url:appUrl()+'#tenant',phone:phoneDigits(x.phone),pin}); }
+function promiseBlock(x){
+  const pr=x.promise, active=pr && (x.pstate!=='kept' || pr.promise_date>=addDays(today(),-7));
+  if(!active) return x.bal>0 ? `<button class="btn sm ghost" id="mPromise">🗓 ${esc(t('addPromise'))}</button>` : '';
+  const bg = x.pstate==='missed'?'var(--bad-soft)':x.pstate==='kept'?'var(--good-soft)':x.pstate==='today'?'var(--warn-soft)':'var(--info-soft)';
+  return `<div class="card stack" style="padding:12px 14px;background:${bg}"><div class="row sb"><b>${esc(t('promiseT'))}</b>${promiseChip(x)}</div>
+    <div>${esc(t('promiseLine',{a:money(pr.amount),d:fdate(pr.promise_date,true)}))}<div class="sub">${esc(t(pr.created_by==='tenant'?'setByTenant':'setByOwner'))} · ${esc(t('paidSince',{a:money(pr.paid_since)}))}</div></div>
+    <div class="sub">${esc(t('p_'+x.pstate))}</div>
+    ${x.pstate!=='kept'?`<div class="grid2"><button class="btn sm soft" id="mPromise">${esc(t('changeDate'))}</button><button class="btn sm danger" id="mPromiseOff">${esc(t('removePromise'))}</button></div>`:''}</div>`;
+}
+function openPromise(x){
+  const pr=x.promise && x.pstate!=='kept' ? x.promise : null;
+  sheet(`<form id="prmForm" class="stack"><h2>🗓 ${esc(t('addPromise'))} · ${esc(x.name)}</h2>
+   <p class="sub" style="margin:0">${esc(t('promiseHelp'))}</p>
+   <div class="grid2"><div><label for="prd">${esc(t('payOnDate'))}</label><input id="prd" type="date" min="${today()}" max="${addDays(today(),45)}" required value="${pr?pr.promise_date:addDays(today(),3)}"></div>
+   <div><label for="pra">${esc(t('amount'))}</label><input id="pra" type="number" inputmode="numeric" min="1" step="1" required value="${Math.round(pr?pr.amount:(x.dueNow>0?x.dueNow:x.bal))||''}"></div></div>
+   <div class="grid2"><button type="button" class="btn ghost" id="cx">${esc(t('cancel'))}</button><button class="btn" id="sv">${esc(t('save'))}</button></div></form>`);
+  $('#cx').onclick=()=>openTenant(x.tenant_id);
+  $('#prmForm').onsubmit=async e=>{ e.preventDefault(); $('#sv').disabled=true;
+    if(pr) await sb.from('payment_promises').update({cancelled:true}).eq('id',pr.id);
+    const r=await sb.from('payment_promises').insert({owner_id:S.session.user.id,tenant_id:x.tenant_id,promise_date:$('#prd').value,amount:Number($('#pra').value),created_by:'owner'});
+    if(r.error){ $('#sv').disabled=false; return toast(errText(r.error)); }
+    await refresh(); toast(t('saved')); openTenant(x.tenant_id); };
+}
 function loginCard(x){
   const on=S.logins[x.tenant_id];
   if(!x.phone) return `<div class="card" style="padding:12px 14px"><b>${esc(t('tenantLoginT'))}</b><div class="sub">${esc(t('needPhone'))}</div></div>`;
@@ -1321,6 +1390,7 @@ function startLive(){
   S.rt = sb.channel('dd-'+uid)
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'payments',filter:'owner_id=eq.'+uid}, ev=>onLive('pay',ev.new))
     .on('postgres_changes',{event:'*',schema:'public',table:'payment_claims',filter:'owner_id=eq.'+uid}, ev=>onLive('claim',ev.new))
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'payment_promises',filter:'owner_id=eq.'+uid}, ev=>onLive('promise',ev.new))
     .subscribe(st=>{ const on=st==='SUBSCRIBED'; if(on!==S.live){ S.live=on; const d=$('.livedot'); if(d) d.classList.toggle('off',!on); } });
   // fallback if Realtime is off: quietly refresh every 45 s while the page is open
   pollTimer=setInterval(()=>{ if(document.visibilityState==='visible' && !$('#scrim')) refresh(true); }, 45000);
@@ -1330,6 +1400,7 @@ function onLive(kind, row){
   if(!row) return;
   const x=S.tenants.find(v=>v.tenant_id===row.tenant_id), n=x?x.name:'';
   if(kind==='pay' && row.source==='online'){ S.fresh.add(row.id); toast(t('paidToast',{n,a:money(row.amount)})+(isTest(row)?' ('+t('testTag')+')':'')); }
+  if(kind==='promise' && row.created_by==='tenant') toast(t('promiseToast',{n,a:money(row.amount),d:fdate(row.promise_date)}));
   if(kind==='claim' && row.status==='pending' && !S.claims.some(c=>c.id===row.id)) toast(t('claimToast',{n,a:money(row.amount)}));
   clearTimeout(liveTimer); liveTimer=setTimeout(()=>refresh(true), 400);
 }

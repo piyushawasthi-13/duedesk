@@ -109,7 +109,10 @@ const L = {
   badAmt:'Enter an amount between ₹1 and ₹5,00,000.', netErr:'Network problem. Please try again.', left:'You have moved out', powered:'Powered by DueDesk', checking:'Checking…', payOnlineTest:'Pay {a} online (test)', testSub:'Demo payment — no real money is taken', testCheckout:'Checkout', testMode:'TEST MODE',
   testNote:'This is a practice payment. No real money moves. It shows on the owner\'s dashboard as a test payment.', method:'Payment method', card:'Card', netbanking:'Net banking',
   payNow:'Pay {a}', simFail:'Simulate failed payment', testFailed:'Payment failed (test). Nothing was recorded.', processing:'Processing…', testDone:'No real money was taken.',
-  demoOff:'Test payments are turned off by the owner.', youPaid:'You have paid', mOnline:'Online', mUpi:'UPI', mCash:'Cash', mBank:'Bank', mOther:'Other', secDeposit:'Security deposit', depPaid:'Paid', depDue:'{a} pending', monthWise:'Month-wise rent', mPaid:'Paid', mPart:'{a} left', mDue:'Pending', mUpcoming:'Upcoming', from:'From', logout:'Log out' },
+  demoOff:'Test payments are turned off by the owner.', willPayOn:'I will pay on a date', promiseHelpT:'Tell the owner when you will pay. You will not get reminders before that date.', date:'Date', savePromise:'Save date',
+  promiseSaved:'Saved. The owner can see your date.', badDate:'Choose a date from today up to 45 days ahead.', changeDate:'Change date',
+  pr_upcoming:'You promised to pay {a} on {d}', pr_today:'Today is your promised date: please pay {a}', pr_missed:'You promised {a} on {d} — not paid yet',
+  pr_kept:'✓ Paid as promised', youPaid:'You have paid', mOnline:'Online', mUpi:'UPI', mCash:'Cash', mBank:'Bank', mOther:'Other', secDeposit:'Security deposit', depPaid:'Paid', depDue:'{a} pending', monthWise:'Month-wise rent', mPaid:'Paid', mPart:'{a} left', mDue:'Pending', mUpcoming:'Upcoming', from:'From', logout:'Log out' },
  hi:{ hello:'नमस्ते {n}', due:'बकाया रकम', dueSince:'{d} से बाकी', dueToday:'आज देना है', allPaid:'सब चुका दिया', advance:'एडवांस जमा', upcoming:'अगला किराया {a}, {d} तारीख को',
   payOnline:'{a} ऑनलाइन दें', onlineSub:'UPI · कार्ड · नेट बैंकिंग — Razorpay से सुरक्षित', payUpi:'UPI ऐप से दें', upiSub:'सीधे मालिक को जाएगा',
   amount:'रकम (₹)', change:'रकम बदलें', payAdvance:'अगले महीने का एडवांस दें',
@@ -123,7 +126,10 @@ const L = {
   badAmt:'₹1 से ₹5,00,000 के बीच रकम लिखें।', netErr:'नेटवर्क की दिक्कत। फिर से कोशिश करें।', left:'आप कमरा छोड़ चुके हैं', powered:'DueDesk द्वारा', checking:'देख रहे हैं…', payOnlineTest:'{a} ऑनलाइन दें (टेस्ट)', testSub:'डेमो पेमेंट — असली पैसे नहीं कटेंगे', testCheckout:'चेकआउट', testMode:'टेस्ट मोड',
   testNote:'यह अभ्यास पेमेंट है। असली पैसे नहीं जाते। मालिक के डैशबोर्ड में टेस्ट पेमेंट के रूप में दिखेगा।', method:'पेमेंट का तरीका', card:'कार्ड', netbanking:'नेट बैंकिंग',
   payNow:'{a} दें', simFail:'फेल पेमेंट आज़माएं', testFailed:'पेमेंट फेल (टेस्ट)। कुछ दर्ज नहीं हुआ।', processing:'हो रहा है…', testDone:'असली पैसे नहीं कटे।',
-  demoOff:'मालिक ने टेस्ट पेमेंट बंद किए हैं।', youPaid:'आपने दिया', mOnline:'ऑनलाइन', mUpi:'UPI', mCash:'कैश', mBank:'बैंक', mOther:'अन्य', secDeposit:'सिक्योरिटी डिपॉज़िट', depPaid:'दे दिया', depDue:'{a} बाकी', monthWise:'महीने के हिसाब से किराया', mPaid:'दे दिया', mPart:'{a} बाकी', mDue:'बाकी', mUpcoming:'आने वाला', from:'से', logout:'लॉग आउट' }
+  demoOff:'मालिक ने टेस्ट पेमेंट बंद किए हैं।', willPayOn:'मैं इस तारीख को दूंगा', promiseHelpT:'मालिक को बताएं कब देंगे। उस तारीख से पहले याद नहीं दिलाया जाएगा।', date:'तारीख', savePromise:'तारीख सेव करें',
+  promiseSaved:'सेव हो गया। मालिक आपकी तारीख देख सकते हैं।', badDate:'आज से 45 दिन के अंदर की तारीख चुनें।', changeDate:'तारीख बदलें',
+  pr_upcoming:'आपने {d} को {a} देने का वादा किया है', pr_today:'आज आपकी वादे की तारीख है: कृपया {a} दें', pr_missed:'आपने {d} को {a} देने का वादा किया था — अभी बाकी है',
+  pr_kept:'✓ वादे के अनुसार दे दिया', youPaid:'आपने दिया', mOnline:'ऑनलाइन', mUpi:'UPI', mCash:'कैश', mBank:'बैंक', mOther:'अन्य', secDeposit:'सिक्योरिटी डिपॉज़िट', depPaid:'दे दिया', depDue:'{a} बाकी', monthWise:'महीने के हिसाब से किराया', mPaid:'दे दिया', mPart:'{a} बाकी', mDue:'बाकी', mUpcoming:'आने वाला', from:'से', logout:'लॉग आउट' }
 };
 const S = { d:null, lang:null, view:'home', amount:null, editAmt:false, receipt:null };
 const $ = s => document.querySelector(s);
@@ -190,6 +196,7 @@ function render(){
   if (S.view === 'done') return renderDone();
   if (S.view === 'upi') return renderUpi();
   if (S.view === 'test') return renderTest();
+  if (S.view === 'promise') return renderPromise();
   const d = S.d, due = Number(d.due_now), amt = S.amount ?? suggested();
   const pend = (d.pending || []).map(p => `<div class="notice info">${esc(t('waiting',{a:money(p.amount)}))}</div>`).join('');
   const canPay = d.online || d.demo || d.upi;
@@ -200,6 +207,7 @@ function render(){
       <div>${status()}</div></div>
       ${due <= 0 && d.active ? `<div class="sub">${esc(t('upcoming',{a:money(d.rent), d:d.due_day}))}</div>` : ''}
     </div>
+    ${promiseBox()}
     ${summary()}
     ${pend}
     ${canPay ? `<div class="card stack">
@@ -224,6 +232,44 @@ function monthWise(){
     if (c.k !== 'rent') continue;
     out.push({ d: c.d, n: c.n, l: c.l, amount: a, left: a - cov, status: cov >= a ? 'paid' : cov > 0 ? 'part' : (c.d > td ? 'upcoming' : 'due') }); }
   return out.reverse();
+}
+function pState(){
+  const pr = S.d.promise; if (!pr) return null;
+  if (pr.kept) return 'kept';
+  const td = today(); return pr.date > td ? 'upcoming' : pr.date === td ? 'today' : 'missed';
+}
+function promiseBox(){
+  const d = S.d, pr = d.promise, st = pState(), due = Number(d.due_now) > 0 || Number(d.balance) > 0;
+  if (!pr || (st === 'kept' && pr.date < addDaysISO(today(), -7))) {
+    return due ? `<button class="btn ghost" id="promiseBtn">🗓 ${esc(t('willPayOn'))}</button>` : '';
+  }
+  const cls = st === 'missed' ? 'notice' : st === 'kept' ? 'notice ok' : st === 'today' ? 'notice' : 'notice info';
+  const bg = st === 'missed' ? 'background:var(--bad-soft);color:var(--bad)' : st === 'kept' ? 'background:var(--good-soft);color:var(--good)' : '';
+  return `<div class="${cls}" style="${bg}"><b>${esc(t('pr_' + st, {a: money(pr.amount), d: fdate(pr.date)}))}</b>
+    ${st !== 'kept' ? `<div style="margin-top:6px"><button class="link" id="promiseBtn" style="color:inherit">${esc(t('changeDate'))}</button></div>` : ''}</div>`;
+}
+function addDaysISO(s, n){ const [y,m,d] = s.split('-').map(Number); const x = new Date(y, m-1, d + n); return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'); }
+function renderPromise(){
+  const d = S.d, pr = d.promise && !d.promise.kept ? d.promise : null;
+  const amt = Math.round(pr ? pr.amount : (Number(d.due_now) > 0 ? Number(d.due_now) : Number(d.balance))) || '';
+  $('#app').innerHTML = header() + `<form class="card stack" id="prForm">
+    <h2>🗓 ${esc(t('willPayOn'))}</h2>
+    <p class="sub" style="margin:0">${esc(t('promiseHelpT'))}</p>
+    <div><label for="prd">${esc(t('date'))}</label><input id="prd" type="date" required min="${today()}" max="${addDaysISO(today(), 45)}" value="${pr ? pr.date : addDaysISO(today(), 3)}"></div>
+    <div><label for="pra">${esc(t('amount'))}</label><input id="pra" type="number" inputmode="numeric" min="1" step="1" required value="${amt}"></div>
+    <button class="btn" id="prSave">${esc(t('savePromise'))}</button>
+    <button class="btn ghost" type="button" id="prBack">${esc(t('back'))}</button></form>${footer()}`;
+  bind();
+  $('#prBack').onclick = () => { S.view = 'home'; render(); };
+  $('#prForm').onsubmit = async e => {
+    e.preventDefault(); const b = $('#prSave'); b.disabled = true;
+    let r, j = {};
+    try { r = await fetch(CFG.SUPABASE_URL + '/rest/v1/rpc/portal_promise', { method:'POST', headers:{ apikey:CFG.SUPABASE_KEY, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_token: TOKEN, p_date: $('#prd').value, p_amount: Number($('#pra').value) }) }); j = await r.json().catch(() => ({})); } catch (err) { r = { ok:false }; }
+    b.disabled = false;
+    if (!r.ok) { const m = String(j.message || ''); return toast(m.includes('BAD_DATE') ? t('badDate') : m.includes('BAD_AMOUNT') ? t('badAmt') : m.includes('TOO_MANY') ? t('tooMany') : t('netErr')); }
+    toast(t('promiseSaved')); S.view = 'home'; await reload(true); render();
+  };
 }
 function summary(){
   const d = S.d, dep = Number(d.deposit || 0), got = Number(d.deposit_received || 0);
@@ -260,6 +306,7 @@ function footer(){
 function curAmount(){ const i = $('#amt'); const v = Math.round(Number(i ? i.value : (S.amount ?? suggested()))); return v; }
 function validAmt(v){ return v >= 1 && v <= 500000; }
 function bind(){
+  const pb = $('#promiseBtn'); if (pb) pb.onclick = () => { S.view = 'promise'; render(); window.scrollTo(0,0); };
   const lo = $('#logout'); if (lo) lo.onclick = () => { try { localStorage.removeItem(AUTH_KEY); } catch(e) {} location.href = 'index.html#tenant'; };
   const lg = $('#lang'); if (lg) lg.onclick = () => { S.lang = lang()==='hi' ? 'en' : 'hi'; try { localStorage.setItem('dd_pay_lang', S.lang); } catch(e) {} render(); };
   const ch = $('#chg'); if (ch) ch.onclick = () => { S.editAmt = true; render(); const i = $('#amt'); i.focus(); i.select(); };
