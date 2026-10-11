@@ -79,6 +79,14 @@ input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius
 .foot a{color:var(--accent)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:20;width:max-content;max-width:min(90vw,440px);text-align:center;font-weight:500}
 .sec{font:600 13px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+.testbadge{display:inline-block;background:var(--warn-soft);color:var(--warn);border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700;letter-spacing:.04em}
+.methods{display:grid;gap:8px}
+.method{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;font-weight:600}
+.method input{width:18px;height:18px;min-height:0;accent-color:var(--accent);flex:none}
+.method:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.spin{display:inline-block;width:16px;height:16px;border:2.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:2.4s}}
 .skeleton{height:180px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
 </style>
 </head>
@@ -98,7 +106,10 @@ const L = {
   history:'Your history', rent:'Rent', extra:'Extra', discount:'Discount', paid:'Paid', viaOnline:'online', viaUpi:'UPI', viaCash:'cash', viaBank:'bank', viaOther:'other', viaDeposit:'from deposit',
   noOnline:'The owner has not set up online payment yet. Please pay the owner directly.', callOwner:'Call owner', bad:'This pay link is not valid. Ask your owner to send you a new one.',
   failed:'Payment did not go through. No money was taken — or if it was, it will show here within a few minutes.', tooMany:'Too many tries. Please wait a while.', dupUtr:'This UTR was already sent.', badUtr:'Please enter the UTR (6–30 letters or digits).',
-  badAmt:'Enter an amount between ₹1 and ₹5,00,000.', netErr:'Network problem. Please try again.', left:'You have moved out', powered:'Powered by DueDesk', checking:'Checking…', monthWise:'Month-wise rent', mPaid:'Paid', mPart:'{a} left', mDue:'Pending', mUpcoming:'Upcoming', from:'From', logout:'Log out' },
+  badAmt:'Enter an amount between ₹1 and ₹5,00,000.', netErr:'Network problem. Please try again.', left:'You have moved out', powered:'Powered by DueDesk', checking:'Checking…', payOnlineTest:'Pay {a} online (test)', testSub:'Demo payment — no real money is taken', testCheckout:'Checkout', testMode:'TEST MODE',
+  testNote:'This is a practice payment. No real money moves. It shows on the owner\'s dashboard as a test payment.', method:'Payment method', card:'Card', netbanking:'Net banking',
+  payNow:'Pay {a}', simFail:'Simulate failed payment', testFailed:'Payment failed (test). Nothing was recorded.', processing:'Processing…', testDone:'No real money was taken.',
+  demoOff:'Test payments are turned off by the owner.', monthWise:'Month-wise rent', mPaid:'Paid', mPart:'{a} left', mDue:'Pending', mUpcoming:'Upcoming', from:'From', logout:'Log out' },
  hi:{ hello:'नमस्ते {n}', due:'बकाया रकम', dueSince:'{d} से बाकी', dueToday:'आज देना है', allPaid:'सब चुका दिया', advance:'एडवांस जमा', upcoming:'अगला किराया {a}, {d} तारीख को',
   payOnline:'{a} ऑनलाइन दें', onlineSub:'UPI · कार्ड · नेट बैंकिंग — Razorpay से सुरक्षित', payUpi:'UPI ऐप से दें', upiSub:'सीधे मालिक को जाएगा',
   amount:'रकम (₹)', change:'रकम बदलें', payAdvance:'अगले महीने का एडवांस दें',
@@ -109,7 +120,10 @@ const L = {
   history:'आपका हिसाब', rent:'किराया', extra:'अलग चार्ज', discount:'छूट', paid:'दिया', viaOnline:'ऑनलाइन', viaUpi:'UPI', viaCash:'कैश', viaBank:'बैंक', viaOther:'अन्य', viaDeposit:'डिपॉज़िट से',
   noOnline:'मालिक ने अभी ऑनलाइन पेमेंट चालू नहीं किया है। कृपया सीधे मालिक को दें।', callOwner:'मालिक को कॉल करें', bad:'यह पेमेंट लिंक सही नहीं है। मालिक से नया लिंक मांगें।',
   failed:'पेमेंट नहीं हुआ। पैसे नहीं कटे — अगर कटे हैं तो कुछ मिनट में यहां दिख जाएंगे।', tooMany:'बहुत बार कोशिश हुई। थोड़ी देर बाद करें।', dupUtr:'यह UTR पहले ही भेजा जा चुका है।', badUtr:'कृपया UTR लिखें (6–30 अक्षर या अंक)।',
-  badAmt:'₹1 से ₹5,00,000 के बीच रकम लिखें।', netErr:'नेटवर्क की दिक्कत। फिर से कोशिश करें।', left:'आप कमरा छोड़ चुके हैं', powered:'DueDesk द्वारा', checking:'देख रहे हैं…', monthWise:'महीने के हिसाब से किराया', mPaid:'दे दिया', mPart:'{a} बाकी', mDue:'बाकी', mUpcoming:'आने वाला', from:'से', logout:'लॉग आउट' }
+  badAmt:'₹1 से ₹5,00,000 के बीच रकम लिखें।', netErr:'नेटवर्क की दिक्कत। फिर से कोशिश करें।', left:'आप कमरा छोड़ चुके हैं', powered:'DueDesk द्वारा', checking:'देख रहे हैं…', payOnlineTest:'{a} ऑनलाइन दें (टेस्ट)', testSub:'डेमो पेमेंट — असली पैसे नहीं कटेंगे', testCheckout:'चेकआउट', testMode:'टेस्ट मोड',
+  testNote:'यह अभ्यास पेमेंट है। असली पैसे नहीं जाते। मालिक के डैशबोर्ड में टेस्ट पेमेंट के रूप में दिखेगा।', method:'पेमेंट का तरीका', card:'कार्ड', netbanking:'नेट बैंकिंग',
+  payNow:'{a} दें', simFail:'फेल पेमेंट आज़माएं', testFailed:'पेमेंट फेल (टेस्ट)। कुछ दर्ज नहीं हुआ।', processing:'हो रहा है…', testDone:'असली पैसे नहीं कटे।',
+  demoOff:'मालिक ने टेस्ट पेमेंट बंद किए हैं।', monthWise:'महीने के हिसाब से किराया', mPaid:'दे दिया', mPart:'{a} बाकी', mDue:'बाकी', mUpcoming:'आने वाला', from:'से', logout:'लॉग आउट' }
 };
 const S = { d:null, lang:null, view:'home', amount:null, editAmt:false, receipt:null };
 const $ = s => document.querySelector(s);
@@ -159,7 +173,7 @@ function oldestUnpaid(){ // payments settle oldest charges first
   return null;
 }
 function histLabel(x){
-  if (x.k === 'pay') return t('paid') + ' · ' + t({online:'viaOnline',upi:'viaUpi',cash:'viaCash',bank:'viaBank',deposit:'viaDeposit'}[x.m] || 'viaOther');
+  if (x.k === 'pay') return t('paid') + ' · ' + t({online:'viaOnline',upi:'viaUpi',cash:'viaCash',bank:'viaBank',deposit:'viaDeposit'}[x.m] || 'viaOther') + (String(x.ref || '').startsWith('test_') ? ' (test)' : '');
   if (x.k === 'extra') return t('extra') + (x.l ? ' · ' + x.l : '');
   if (x.k === 'waiver') return t('discount') + (x.l ? ' · ' + x.l : '');
   return t('rent') + (x.l && x.l.startsWith('Rent ·') ? ' · ' + x.n + (lang()==='hi' ? ' दिन' : ' days') : '');
@@ -175,9 +189,10 @@ function render(){
   if (!S.d) { app.innerHTML = header() + `<div class="card notice">${esc(t('bad'))}</div>`; bind(); return; }
   if (S.view === 'done') return renderDone();
   if (S.view === 'upi') return renderUpi();
+  if (S.view === 'test') return renderTest();
   const d = S.d, due = Number(d.due_now), amt = S.amount ?? suggested();
   const pend = (d.pending || []).map(p => `<div class="notice info">${esc(t('waiting',{a:money(p.amount)}))}</div>`).join('');
-  const canPay = d.online || d.upi;
+  const canPay = d.online || d.demo || d.upi;
   app.innerHTML = header() + `<div class="stack">
     <div class="card stack">
       <div><div class="hello">${esc(t('hello',{n:d.name}))}${d.active ? '' : ' · ' + esc(t('left'))}</div>
@@ -189,8 +204,9 @@ function render(){
     ${canPay ? `<div class="card stack">
       ${S.editAmt ? `<div><label for="amt">${esc(t('amount'))}</label><div class="amtrow"><span>₹</span><input id="amt" type="number" inputmode="numeric" min="1" max="500000" step="1" value="${amt}"></div></div>`
                   : `<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="sub">${esc(t('amount'))}: <b class="num" style="color:var(--ink)">${money(amt)}</b></span><button class="link" id="chg">${esc(due > 0 || Number(d.balance) > 0 ? t('change') : t('payAdvance'))}</button></div>`}
-      ${d.online ? `<button class="btn" id="payOnline">${esc(t('payOnline',{a:money(amt)}))}<small>${esc(t('onlineSub'))}</small></button>` : ''}
-      ${d.upi ? `<button class="btn ${d.online ? 'soft' : ''}" id="payUpi">${esc(t('payUpi'))}<small>${esc(t('upiSub'))}</small></button>` : ''}
+      ${d.online ? `<button class="btn" id="payOnline">${esc(t('payOnline',{a:money(amt)}))}<small>${esc(t('onlineSub'))}</small></button>`
+        : d.demo ? `<button class="btn" id="payDemo">${esc(t('payOnlineTest',{a:money(amt)}))}<small>${esc(t('testSub'))}</small></button>` : ''}
+      ${d.upi ? `<button class="btn ${d.online || d.demo ? 'soft' : ''}" id="payUpi">${esc(t('payUpi'))}<small>${esc(t('upiSub'))}</small></button>` : ''}
     </div>` : `<div class="notice">${esc(t('noOnline'))}</div>`}
     ${months()}
     ${history()}
@@ -238,6 +254,7 @@ function bind(){
   const ai = $('#amt'); if (ai) ai.oninput = () => { S.amount = Math.round(Number(ai.value)) || 0; const b = $('#payOnline');
     if (b) b.firstChild.textContent = t('payOnline',{a:money(S.amount)}); };
   const po = $('#payOnline'); if (po) po.onclick = payOnline;
+  const pd = $('#payDemo'); if (pd) pd.onclick = () => { const v = curAmount(); if (!validAmt(v)) return toast(t('badAmt')); S.amount = v; S.view = 'test'; render(); window.scrollTo(0,0); };
   const pu = $('#payUpi'); if (pu) pu.onclick = () => { const v = curAmount(); if (!validAmt(v)) return toast(t('badAmt')); S.amount = v; S.view = 'upi'; render(); window.scrollTo(0,0); };
 }
 
@@ -308,11 +325,43 @@ function renderUpi(){
   };
 }
 
+// ---------- Test (demo) checkout: looks like a payment gateway, no real money ----------
+function renderTest(){
+  const d = S.d;
+  $('#app').innerHTML = header() + `<form class="card stack" id="testForm">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>${esc(t('testCheckout'))}</h2><span class="testbadge">${esc(t('testMode'))}</span></div>
+    <div class="sub">${esc(t('testNote'))}</div>
+    <div class="kv"><span>${esc(t('paidTo'))}</span><span>${esc(d.place)}</span></div>
+    <div class="kv"><span>${esc(t('amount'))}</span><span class="num" style="font-weight:700;font-size:20px">${money(S.amount)}</span></div>
+    <div class="methods" role="radiogroup" aria-label="${esc(t('method'))}">
+      <label class="method"><input type="radio" name="m" value="upi" checked> UPI <span class="sub" style="margin-left:auto">success@test</span></label>
+      <label class="method"><input type="radio" name="m" value="card"> ${esc(t('card'))} <span class="sub num" style="margin-left:auto">4111 1111 1111 1111</span></label>
+      <label class="method"><input type="radio" name="m" value="nb"> ${esc(t('netbanking'))} <span class="sub" style="margin-left:auto">Test Bank</span></label>
+    </div>
+    <button class="btn" id="testPay">${esc(t('payNow',{a:money(S.amount)}))}</button>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><button type="button" class="link" id="testCancel">${esc(t('back'))}</button><button type="button" class="link" id="testFail">${esc(t('simFail'))}</button></div>
+  </form>${footer()}`;
+  bind();
+  $('#testCancel').onclick = () => { S.view = 'home'; render(); };
+  $('#testFail').onclick = () => { toast(t('testFailed')); S.view = 'home'; render(); };
+  $('#testForm').onsubmit = async e => {
+    e.preventDefault(); const b = $('#testPay'); b.disabled = true; b.innerHTML = `<span class="spin" aria-hidden="true"></span> ${esc(t('processing'))}`;
+    await new Promise(r => setTimeout(r, 1200));
+    let r, j = {};
+    try { r = await fetch(CFG.SUPABASE_URL + '/rest/v1/rpc/portal_demo_pay', { method:'POST', headers:{ apikey:CFG.SUPABASE_KEY, 'Content-Type':'application/json' }, body: JSON.stringify({ p_token: TOKEN, p_amount: S.amount }) }); j = await r.json().catch(() => ({})); }
+    catch (err) { r = { ok:false }; }
+    if (!r.ok) { const m = String(j.message || ''); b.disabled = false; b.textContent = t('payNow',{a:money(S.amount)});
+      return toast(m.includes('TOO_MANY') ? t('tooMany') : m.includes('BAD_AMOUNT') ? t('badAmt') : m.includes('DEMO_OFF') ? t('demoOff') : t('netErr')); }
+    S.receipt = { amount: j.amount, ref: j.payment, balance: Number(j.balance), how: 'test' };
+    await reload(true); S.view = 'done'; render();
+  };
+}
 function renderDone(){
   const r = S.receipt, d = S.d;
   $('#app').innerHTML = header() + `<div class="card stack done">
     <div class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
     <h2>${esc(t('paidOk'))}</h2><div class="due num good">${money(r.amount)}</div>
+    ${r.how === 'test' ? `<div><span class="testbadge">${esc(t('testMode'))}</span> <span class="sub">${esc(t('testDone'))}</span></div>` : ''}
     <div style="text-align:left">
       <div class="kv"><span>${esc(t('paidTo'))}</span><span>${esc(d.place)}</span></div>
       <div class="kv"><span>${esc(t('paidOn'))}</span><span>${esc(fdate(today()))}</span></div>

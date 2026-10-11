@@ -90,6 +90,7 @@ create table if not exists owners (
 alter table owners add column if not exists upi_id text;
 alter table owners add column if not exists notify_push boolean not null default true;
 alter table owners add column if not exists plan_cycle text;
+alter table owners add column if not exists demo_pay boolean not null default true;
 
 create or replace function handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
@@ -695,6 +696,7 @@ language sql stable security definer set search_path = public as $$
     'rent', t.rent_amount, 'due_day', t.due_day, 'active', t.is_active,
     'balance', b.balance, 'due_now', b.due_now,
     'online', exists (select 1 from private.gateways g where g.owner_id = o.id),
+    'demo', o.demo_pay and not exists (select 1 from private.gateways g where g.owner_id = o.id),
     'history', coalesce((select jsonb_agg(h order by h->>'d' desc, h->>'k') from (
         select jsonb_build_object('d', c.due_date, 'k', c.kind, 'a', c.amount, 'l', c.label, 'n', c.days_charged) h
           from charges c where c.tenant_id = t.id
@@ -954,6 +956,43 @@ begin
     execute format('grant execute on function %s to service_role', f);
   end loop;
 end $$;
+
+
+-- =====================================================================
+-- TEST (DEMO) ONLINE PAYMENTS — work without Razorpay, no real money, marked "test"
+-- =====================================================================
+grant update (demo_pay) on owners to authenticated;
+
+create or replace function payments_guard() returns trigger language plpgsql set search_path = public as $$
+begin
+  if current_user in ('authenticated', 'anon') then
+    if tg_op = 'INSERT' and (new.source <> 'owner' or new.mode = 'online') then raise exception 'NOT_ALLOWED'; end if;
+    if tg_op in ('UPDATE', 'DELETE') and old.source = 'online' and coalesce(old.ref, '') not like 'test\_%' then raise exception 'ONLINE_LOCKED'; end if;
+    if tg_op = 'UPDATE' and (new.source <> old.source or new.mode = 'online') then raise exception 'NOT_ALLOWED'; end if;
+  end if;
+  return coalesce(new, old);
+end $$;
+
+create or replace function portal_demo_pay(p_token text, p_amount numeric) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare t tenants; o owners; v_ref text; bal numeric; amt numeric := round(p_amount, 0);
+begin
+  select * into t from tenants where pay_token = p_token and length(p_token) >= 24;
+  if not found then raise exception 'NOT_FOUND'; end if;
+  select * into o from owners where id = t.owner_id;
+  if not o.demo_pay or exists (select 1 from private.gateways g where g.owner_id = o.id) then raise exception 'DEMO_OFF'; end if;
+  if amt is null or amt < 1 or amt > 500000 then raise exception 'BAD_AMOUNT'; end if;
+  if (select count(*) from payments y where y.tenant_id = t.id and y.ref like 'test\_%' and y.created_at > now() - interval '1 hour') >= 20 then
+    raise exception 'TOO_MANY';
+  end if;
+  v_ref := 'test_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 14);
+  insert into payments (owner_id, tenant_id, amount, mode, source, ref, paid_on, note)
+  values (t.owner_id, t.id, amt, 'online', 'online', v_ref, today_ist(), 'Test payment (demo) · no real money');
+  select balance into bal from tenant_balances where tenant_id = t.id;
+  return jsonb_build_object('amount', amt, 'payment', v_ref, 'balance', bal);
+end $$;
+revoke execute on function portal_demo_pay(text, numeric) from public;
+grant execute on function portal_demo_pay(text, numeric) to anon, authenticated;
 
 -- ---------- owners created before this script --------------------------
 insert into owners (id, phone) select id, phone from auth.users

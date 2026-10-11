@@ -305,7 +305,7 @@ const I18N = {
  }
 };
 Object.assign(I18N.en, {
-  dashboard:'Dashboard', payments:'Payments', roleOwner:'PG owner', roleTenant:'Tenant', iAm:'I am a', tenantLogin:'Tenant login', tenantTag:'See your monthly rent and pay online.',
+  dashboard:'Dashboard', payments:'Payments', testTag:'test', demoTitle:'Test payments (demo)', demoHelp:'Until Razorpay is connected, tenants can try "Pay online (test)". No real money moves; it shows here marked as test.', roleOwner:'PG owner', roleTenant:'Tenant', iAm:'I am a', tenantLogin:'Tenant login', tenantTag:'See your monthly rent and pay online.',
   pin:'PIN (4–6 digits)', pinHelp:'Your PG owner gives you the PIN. Ask them if you don\'t have one.', badPhone:'Enter your 10-digit mobile number.', badPin:'PIN must be 4 to 6 digits.',
   badTenantLogin:'Wrong phone number or PIN. Ask your PG owner to check.', pickRoom:'Choose your room', noRoom:'No room linked yet', noRoomHelp:'Ask your PG owner to turn on your login again.',
   monthWise:'Month-wise rent', mPaid:'Paid', mPart:'{a} left', mDue:'Pending', mUpcoming:'Upcoming', daysN:'{n} days', rentOf:'Rent · {m}', paidOfN:'{a} of {b} paid',
@@ -330,7 +330,7 @@ Object.assign(I18N.en, {
   greeting:'Hello{n}', todayIs:'{d}'
 });
 Object.assign(I18N.hi, {
-  dashboard:'डैशबोर्ड', payments:'पेमेंट', roleOwner:'पीजी मालिक', roleTenant:'किरायेदार', iAm:'मैं हूँ', tenantLogin:'किरायेदार लॉग इन', tenantTag:'अपना महीने का किराया देखें और ऑनलाइन दें।',
+  dashboard:'डैशबोर्ड', payments:'पेमेंट', testTag:'टेस्ट', demoTitle:'टेस्ट पेमेंट (डेमो)', demoHelp:'Razorpay जुड़ने तक किरायेदार "ऑनलाइन दें (टेस्ट)" आज़मा सकते हैं। असली पैसे नहीं जाते; यहां टेस्ट के रूप में दिखेगा।', roleOwner:'पीजी मालिक', roleTenant:'किरायेदार', iAm:'मैं हूँ', tenantLogin:'किरायेदार लॉग इन', tenantTag:'अपना महीने का किराया देखें और ऑनलाइन दें।',
   pin:'PIN (4–6 अंक)', pinHelp:'PIN आपके पीजी मालिक देंगे। न हो तो उनसे मांगें।', badPhone:'अपना 10 अंकों का मोबाइल नंबर लिखें।', badPin:'PIN 4 से 6 अंकों का होना चाहिए।',
   badTenantLogin:'फोन नंबर या PIN गलत है। पीजी मालिक से पूछें।', pickRoom:'अपना कमरा चुनें', noRoom:'अभी कोई कमरा जुड़ा नहीं', noRoomHelp:'पीजी मालिक से लॉग इन फिर से चालू करने को कहें।',
   monthWise:'महीने के हिसाब से किराया', mPaid:'दे दिया', mPart:'{a} बाकी', mDue:'बाकी', mUpcoming:'आने वाला', daysN:'{n} दिन', rentOf:'किराया · {m}', paidOfN:'{b} में से {a} ने दिया',
@@ -392,7 +392,8 @@ function cycleStart(s,dd){ const d=P(s); let a=anchor(d.getFullYear(),d.getMonth
 function nextAnchor(s,dd){ const d=P(s); return iso(anchor(d.getFullYear(),d.getMonth()+1,dd)); }
 const payUrl = x => new URL('pay.html?t='+encodeURIComponent(x.pay_token), location.href).href;
 const modeLabel = m => m==='deposit'?t('fromDeposit'):m==='online'?t('online2'):t(m);
-const modeChip = p => p.source==='online' ? `<span class="chip good">${esc(t('online2'))}</span>` : p.source==='upi' ? `<span class="chip info">UPI ✓</span>` : `<span class="chip off">${esc(modeLabel(p.mode))}</span>`;
+const isTest = p => String(p.ref||'').startsWith('test_');
+const modeChip = p => isTest(p) ? `<span class="chip warn">${esc(t('online2'))} · ${esc(t('testTag'))}</span>` : p.source==='online' ? `<span class="chip good">${esc(t('online2'))}</span>` : p.source==='upi' ? `<span class="chip info">UPI ✓</span>` : `<span class="chip off">${esc(modeLabel(p.mode))}</span>`;
 
 // ---------- data ----------
 async function fetchAll(make){
@@ -830,7 +831,8 @@ function viewSettings(){
      ${gw.connected ? `<div class="row wrap"><span class="chip good">✓ ${esc(gw.live?t('connectedLive'):t('connectedTest'))}</span><span class="sub num">${esc(gw.key_id)}</span></div>
         <div><label>${esc(t('webhookUrl'))}</label><div class="code">${esc(hookUrl)}</div><div class="sub" style="margin-top:4px">${esc(t('rzpHook'))}</div></div>
         <button class="btn danger sm" id="gwOff" style="align-self:flex-start">${esc(t('disconnect'))}</button>`
-      : `<ol class="steps"><li>${esc(t('rzpSteps'))}</li></ol>
+      : `<label class="switch" style="border:1px solid var(--line);border-radius:12px;padding:10px 12px"><span><b>${esc(t('demoTitle'))}</b><br><span class="sub">${esc(t('demoHelp'))}</span></span><input type="checkbox" data-tog="demo_pay" ${o.demo_pay!==false?'checked':''}></label>
+        <ol class="steps"><li>${esc(t('rzpSteps'))}</li></ol>
         <form id="gwForm" class="stack"><div class="grid2"><div><label for="gk">${esc(t('keyId'))}</label><input id="gk" placeholder="rzp_live_…" autocomplete="off" autocapitalize="off" required></div>
         <div><label for="gs">${esc(t('keySecret'))}</label><input id="gs" type="password" autocomplete="off" required></div></div>
         <div><label for="gh">${esc(t('webhookSecret'))}</label><input id="gh" autocomplete="off"></div>
@@ -1011,7 +1013,7 @@ function ledgerLines(x){
   return [
     ...x.ledger.ch.map(c=>({d:c.due_date,k:c.kind==='waiver'?'w':'c',a:Math.abs(Number(c.amount)),id:c.id,adj:c.kind!=='rent',
       l:c.kind==='rent'?(c.days_charged&&c.label&&c.label.startsWith('Rent ·')?t('charge')+' · '+c.days_charged+(lang()==='hi'?' दिन':' days'):t('charge')):(c.kind==='extra'?t('extra'):t('discount'))+(c.label?' · '+c.label:'')})),
-    ...x.ledger.pay.map(p=>({d:p.paid_on,k:'p',a:Number(p.amount),l:t('paidVia',{m:modeLabel(p.mode)})+(p.source==='upi'?' · UTR '+(p.ref||''):p.note&&p.source==='owner'?' · '+p.note:''),id:p.id,pay:p.source!=='online',online:p.source==='online'}))
+    ...x.ledger.pay.map(p=>({d:p.paid_on,k:'p',a:Number(p.amount),l:t('paidVia',{m:modeLabel(p.mode)})+(isTest(p)?' · '+t('testTag'):p.source==='upi'?' · UTR '+(p.ref||''):p.note&&p.source==='owner'?' · '+p.note:''),id:p.id,pay:p.source!=='online'||isTest(p),online:p.source==='online'&&!isTest(p)}))
   ].sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:(a.k==='p'?-1:1));
 }
 function openTenant(id){
@@ -1253,7 +1255,7 @@ function stopLive(){ if(S.rt){ try{ sb.removeChannel(S.rt); }catch(e){} S.rt=nul
 function onLive(kind, row){
   if(!row) return;
   const x=S.tenants.find(v=>v.tenant_id===row.tenant_id), n=x?x.name:'';
-  if(kind==='pay' && row.source==='online'){ S.fresh.add(row.id); toast(t('paidToast',{n,a:money(row.amount)})); }
+  if(kind==='pay' && row.source==='online'){ S.fresh.add(row.id); toast(t('paidToast',{n,a:money(row.amount)})+(isTest(row)?' ('+t('testTag')+')':'')); }
   if(kind==='claim' && row.status==='pending' && !S.claims.some(c=>c.id===row.id)) toast(t('claimToast',{n,a:money(row.amount)}));
   clearTimeout(liveTimer); liveTimer=setTimeout(()=>refresh(true), 400);
 }
