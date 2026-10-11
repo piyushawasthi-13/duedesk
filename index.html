@@ -165,6 +165,11 @@ ol.steps li{margin:2px 0}
 .livedot.off{color:var(--muted)} .livedot.off::before{background:var(--muted)}
 
 /* claims */
+.mrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.mrow:last-child{border-bottom:0}
+.meter{height:10px;border-radius:99px;background:var(--line);overflow:hidden;display:flex;gap:2px}
+.meter i{display:block;height:100%;background:var(--good)}
+.meter i.p{background:var(--warn)}
 .claim{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .claim:last-child{border:0}
 .claim .acts{display:flex;gap:8px;margin-left:auto}
@@ -300,7 +305,15 @@ const I18N = {
  }
 };
 Object.assign(I18N.en, {
-  dashboard:'Dashboard', payments:'Payments', exists:'You already have an account with this email. Please log in.', badEmail:'Please enter a valid email address.', badLogin:'Wrong email or password.', netErr:'Network problem. Please try again.', fromN1:'from 1 member', fromPayments1:'1 payment', lateN1:'1 late', dlCsv:'Download CSV', starts:'Starts {d}', online:'Online', onlinePaid:'Paid online · {m}', activeMembers:'Active members', lateN:'{n} late',
+  dashboard:'Dashboard', payments:'Payments', roleOwner:'PG owner', roleTenant:'Tenant', iAm:'I am a', tenantLogin:'Tenant login', tenantTag:'See your monthly rent and pay online.',
+  pin:'PIN (4–6 digits)', pinHelp:'Your PG owner gives you the PIN. Ask them if you don\'t have one.', badPhone:'Enter your 10-digit mobile number.', badPin:'PIN must be 4 to 6 digits.',
+  badTenantLogin:'Wrong phone number or PIN. Ask your PG owner to check.', pickRoom:'Choose your room', noRoom:'No room linked yet', noRoomHelp:'Ask your PG owner to turn on your login again.',
+  monthWise:'Month-wise rent', mPaid:'Paid', mPart:'{a} left', mDue:'Pending', mUpcoming:'Upcoming', daysN:'{n} days', rentOf:'Rent · {m}', paidOfN:'{a} of {b} paid',
+  appUser:'App', tenantLoginT:'Tenant login', loginOn:'Login on', loginOff:'Login off', loginOnHelp:'Tenant logs in with phone {p} and their PIN to see rent and pay online.',
+  loginOffHelp:'Give this tenant a PIN so they can log in with their phone number and pay rent online.', needPhone:'Add the tenant\'s 10-digit mobile number (Edit details) to turn on login.',
+  setPin:'Set PIN & turn on login', changePin:'Change PIN', turnOff:'Turn off', pinFormHelp:'The tenant will log in with phone {p} and this PIN.', loginReady:'Login is on',
+  sendDetails:'Send these login details to the tenant:', copyMsg:'Copy message',
+  loginMsg:'Hi {name}, you can now see your {prop} rent and pay online.\nOpen: {url}\nTap "Tenant", then log in with\nPhone: {phone}\nPIN: {pin}', exists:'You already have an account with this email. Please log in.', badEmail:'Please enter a valid email address.', badLogin:'Wrong email or password.', netErr:'Network problem. Please try again.', fromN1:'from 1 member', fromPayments1:'1 payment', lateN1:'1 late', dlCsv:'Download CSV', starts:'Starts {d}', online:'Online', onlinePaid:'Paid online · {m}', activeMembers:'Active members', lateN:'{n} late',
   collectedIn:'Collected · {m}', fromPayments:'{n} payments', waitingConfirm:'Waiting for your confirmation', confirm:'Confirm', reject:'Reject',
   claimLine:'{a} by UPI · UTR {u}', recentPayments:'Recent payments', live:'Live', newBadge:'New', chartTitle:'Collected per month', chartSub:'Last 6 months · {p}',
   sendLink:'Send pay link', copyLink:'Copy pay link', linkCopied:'Pay link copied', payLink:'Online pay link', payLinkHelp:'Members open this link to see their dues and pay you online or by UPI.',
@@ -317,7 +330,15 @@ Object.assign(I18N.en, {
   greeting:'Hello{n}', todayIs:'{d}'
 });
 Object.assign(I18N.hi, {
-  dashboard:'डैशबोर्ड', payments:'पेमेंट', exists:'इस ईमेल से खाता पहले से है। कृपया लॉग इन करें।', badEmail:'सही ईमेल लिखें।', badLogin:'ईमेल या पासवर्ड गलत है।', netErr:'नेटवर्क की दिक्कत। फिर कोशिश करें।', dlCsv:'CSV डाउनलोड', starts:'{d} से शुरू', online:'ऑनलाइन', onlinePaid:'ऑनलाइन मिला · {m}', activeMembers:'सक्रिय सदस्य', lateN:'{n} लेट',
+  dashboard:'डैशबोर्ड', payments:'पेमेंट', roleOwner:'पीजी मालिक', roleTenant:'किरायेदार', iAm:'मैं हूँ', tenantLogin:'किरायेदार लॉग इन', tenantTag:'अपना महीने का किराया देखें और ऑनलाइन दें।',
+  pin:'PIN (4–6 अंक)', pinHelp:'PIN आपके पीजी मालिक देंगे। न हो तो उनसे मांगें।', badPhone:'अपना 10 अंकों का मोबाइल नंबर लिखें।', badPin:'PIN 4 से 6 अंकों का होना चाहिए।',
+  badTenantLogin:'फोन नंबर या PIN गलत है। पीजी मालिक से पूछें।', pickRoom:'अपना कमरा चुनें', noRoom:'अभी कोई कमरा जुड़ा नहीं', noRoomHelp:'पीजी मालिक से लॉग इन फिर से चालू करने को कहें।',
+  monthWise:'महीने के हिसाब से किराया', mPaid:'दे दिया', mPart:'{a} बाकी', mDue:'बाकी', mUpcoming:'आने वाला', daysN:'{n} दिन', rentOf:'किराया · {m}', paidOfN:'{b} में से {a} ने दिया',
+  appUser:'ऐप', tenantLoginT:'किरायेदार लॉग इन', loginOn:'लॉग इन चालू', loginOff:'लॉग इन बंद', loginOnHelp:'किरायेदार फोन {p} और अपने PIN से लॉग इन करके किराया देख और दे सकता है।',
+  loginOffHelp:'इस किरायेदार को PIN दें ताकि वह फोन नंबर से लॉग इन करके ऑनलाइन किराया दे सके।', needPhone:'लॉग इन चालू करने के लिए किरायेदार का 10 अंकों का मोबाइल नंबर जोड़ें (जानकारी बदलें)।',
+  setPin:'PIN सेट करें और लॉग इन चालू करें', changePin:'PIN बदलें', turnOff:'बंद करें', pinFormHelp:'किरायेदार फोन {p} और इस PIN से लॉग इन करेगा।', loginReady:'लॉग इन चालू हो गया',
+  sendDetails:'ये लॉग इन जानकारी किरायेदार को भेजें:', copyMsg:'मैसेज कॉपी करें',
+  loginMsg:'नमस्ते {name}, अब आप {prop} का किराया देख और ऑनलाइन दे सकते हैं।\nखोलें: {url}\n"किरायेदार" चुनें, फिर लॉग इन करें\nफोन: {phone}\nPIN: {pin}', exists:'इस ईमेल से खाता पहले से है। कृपया लॉग इन करें।', badEmail:'सही ईमेल लिखें।', badLogin:'ईमेल या पासवर्ड गलत है।', netErr:'नेटवर्क की दिक्कत। फिर कोशिश करें।', dlCsv:'CSV डाउनलोड', starts:'{d} से शुरू', online:'ऑनलाइन', onlinePaid:'ऑनलाइन मिला · {m}', activeMembers:'सक्रिय सदस्य', lateN:'{n} लेट',
   collectedIn:'मिला · {m}', fromPayments:'{n} पेमेंट', waitingConfirm:'आपके कन्फर्म का इंतज़ार', confirm:'कन्फर्म', reject:'मना करें',
   claimLine:'{a} UPI से · UTR {u}', recentPayments:'हाल के पेमेंट', live:'लाइव', newBadge:'नया', chartTitle:'हर महीने मिला', chartSub:'पिछले 6 महीने · {p}',
   sendLink:'पेमेंट लिंक भेजें', copyLink:'पेमेंट लिंक कॉपी करें', linkCopied:'लिंक कॉपी हो गया', payLink:'ऑनलाइन पेमेंट लिंक', payLinkHelp:'सदस्य इस लिंक से अपना बकाया देखकर ऑनलाइन या UPI से पैसे दे सकते हैं।',
@@ -347,7 +368,7 @@ const nf = new Intl.NumberFormat('en-IN',{maximumFractionDigits:0});
 const money = n => '₹'+nf.format(Math.abs(Math.round(Number(n)||0)));
 const S = { session:null, owner:null, props:[], pid:'all', tenants:[], charges:[], payments:[], claims:[], plans:[], gw:{connected:false},
             tab:'home', q:'', filter:'all', authMode:'login', authMsg:'', loaded:false, repMonth:today().slice(0,7), cycle:'monthly',
-            vapid:null, recovery:false, fresh:new Set(), live:false, synced:false };
+            vapid:null, recovery:false, fresh:new Set(), live:false, synced:false, logins:{}, authRole:(location.hash==='#tenant'?'tenant':(()=>{ try{ return localStorage.getItem('dd_role')||'owner'; }catch(e){ return 'owner'; } })()) };
 const store = { get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
 function lang(){ return (S.owner && S.owner.language) || store.get('dd_lang') || 'en'; }
 function t(k, v={}){ if(v.n===1 && (I18N[lang()][k+'1'] ?? I18N.en[k+'1'])) k=k+'1'; let s = (I18N[lang()][k] ?? I18N.en[k] ?? k); for(const x in v) s = s.replaceAll('{'+x+'}', v[x]); return s; }
@@ -387,16 +408,17 @@ async function loadAll(){
     sb.from('plans').select('*').order('price_monthly'),
     sb.rpc('my_gateway')]);
   for(const r of [o,p,pl]) if(r.error) throw r.error;
-  const [tb,tk,ch,pay,cl]=await Promise.all([
+  const [tb,tk,ch,pay,cl,lg]=await Promise.all([
     fetchAll(()=>sb.from('tenant_balances').select('*').order('name')),
     fetchAll(()=>sb.from('tenants').select('id,pay_token')),
     fetchAll(()=>sb.from('charges').select('id,tenant_id,kind,period_start,period_end,due_date,days_charged,amount,label').order('due_date')),
     fetchAll(()=>sb.from('payments').select('id,tenant_id,amount,paid_on,mode,source,ref,note,created_at').order('paid_on',{ascending:false}).order('created_at',{ascending:false})),
-    sb.from('payment_claims').select('*').eq('status','pending').order('created_at',{ascending:false}).then(r=>r.data||[])]);
+    sb.from('payment_claims').select('*').eq('status','pending').order('created_at',{ascending:false}).then(r=>r.data||[]),
+    sb.from('tenant_logins').select('tenant_id,phone').then(r=>r.data||[])]);
   const tok=Object.fromEntries(tk.map(x=>[x.id,x.pay_token]));
   tb.forEach(x=>x.pay_token=tok[x.tenant_id]);
   S.owner=o.data; S.props=p.data||[]; S.plans=pl.data||[]; S.gw=(gw&&gw.data)||{connected:false};
-  S.charges=ch; S.payments=pay; S.tenants=tb; S.claims=cl;
+  S.charges=ch; S.payments=pay; S.tenants=tb; S.claims=cl; S.logins=Object.fromEntries(lg.map(x=>[x.tenant_id,x.phone]));
   if(S.pid!=='all' && !S.props.some(x=>x.id===S.pid)) S.pid='all';
   enrich(); S.loaded=true;
   store.set('dd_cache_'+uid, JSON.stringify({o:S.owner,p:S.props,pl:S.plans,tb,ch,pay,cl,gw:S.gw}));
@@ -417,6 +439,8 @@ function enrich(){
     let oldest=null;
     for(const c of g.ch){ const a=Number(c.amount); if(a<0) continue; if(credit>=a) credit-=a; else { oldest=c.due_date; break; } }
     x.oldest=oldest; x.late=oldest?dayDiff(oldest,td):null;
+    x.months=monthWise(g.ch,g.pay,td);
+    x.cur=x.months.find(m=>m.c.period_start<=td && td<=m.c.period_end) || null;
     if(x.dueNow>0) x.status = x.late>0 ? 'late' : 'today';
     else if(x.bal>0) x.status='soon';
     else if(x.bal<0) x.status='advance';
@@ -429,6 +453,30 @@ function enrich(){
   });
   const rank={late:0,today:1,soon:2,advance:3,paid:4};
   S.tenants.sort((a,b)=>(b.is_active-a.is_active) || rank[a.status]-rank[b.status] || (b.late||0)-(a.late||0) || a.name.localeCompare(b.name));
+}
+// Month-wise rent: payments (and discounts) settle the oldest dues first; each rent month gets Paid / Partly paid / Pending.
+function monthWise(charges, pays, td){
+  const ch=charges.filter(c=>Number(c.amount)>0).slice().sort((a,b)=>a.due_date<b.due_date?-1:a.due_date>b.due_date?1:0);
+  let credit=pays.reduce((s,p)=>s+Number(p.amount),0)-charges.filter(c=>Number(c.amount)<0).reduce((s,c)=>s+Number(c.amount),0);
+  const out=[];
+  for(const c of ch){ const a=Number(c.amount), cov=Math.max(0,Math.min(a,credit)); credit-=cov;
+    if(c.kind!=='rent') continue;
+    out.push({c, amount:a, paid:cov, left:a-cov, status: cov>=a?'paid':cov>0?'part':(c.due_date>td?'upcoming':'due')}); }
+  return out.reverse();
+}
+const mLabel = c => P(c.period_start).toLocaleDateString(loc(),{month:'long',year:'numeric'});
+const mRange = c => fdate(c.period_start)+' – '+fdate(c.period_end);
+function mChip(m){
+  if(m.status==='paid') return `<span class="chip good">✓ ${esc(t('mPaid'))}</span>`;
+  if(m.status==='part') return `<span class="chip warn">${esc(t('mPart',{a:money(m.left)}))}</span>`;
+  if(m.status==='upcoming') return `<span class="chip mute">${esc(t('mUpcoming'))}</span>`;
+  return `<span class="chip bad">${esc(t('mDue'))}</span>`;
+}
+function monthList(x, limit){
+  const ms=x.months.slice(0,limit||24);
+  if(!ms.length) return `<div class="empty">${esc(t('noHistory'))}</div>`;
+  return ms.map(m=>`<div class="mrow"><div class="grow"><div style="font-weight:600">${esc(mLabel(m.c))}</div><div class="sub">${esc(mRange(m.c))}${m.c.days_charged&&m.c.label&&m.c.label.startsWith('Rent ·')?' · '+esc(t('daysN',{n:m.c.days_charged})):''}</div></div>
+    <div style="text-align:right"><div class="num" style="font-weight:700">${money(m.amount)}</div>${mChip(m)}</div></div>`).join('');
 }
 const visible = () => S.tenants.filter(x=>S.pid==='all'||x.property_id===S.pid);
 const byTenant = () => Object.fromEntries(S.tenants.map(x=>[x.tenant_id,x]));
@@ -445,29 +493,51 @@ function planInfo(){ return S.plans.find(p=>p.id===(S.owner&&S.owner.plan_id))||
 function propName(x){ return (x&&x.prop&&x.prop.name) || (S.props[0]&&S.props[0].name) || 'DueDesk'; }
 
 // ---------- auth ----------
+const phoneDigits = p => { let d=String(p||'').replace(/\D/g,''); if(d.length>10) d=d.slice(-10); return d; };
+const phoneEmail = d => d+'@tenant.duedesk.app';
+const pinPassword = pin => 'DD-pin-'+pin+'-tenant';
+const isTenantUser = u => !!(u && u.user_metadata && u.user_metadata.role==='tenant');
 function renderAuth(){
-  const signup=S.authMode==='signup';
+  const tenant=S.authRole==='tenant', signup=!tenant && S.authMode==='signup';
   $('#layer').innerHTML='';
   $('#app').innerHTML=`<div class="auth stack">
     <div class="brand"><img src="icon.svg" alt="">DueDesk</div>
-    <div><h1>${esc(signup?t('signup'):t('login'))}</h1><p class="sub" style="margin:0">${esc(t('tagline'))}</p></div>
-    <div class="seg" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="${lang()==='en'}">English</button><button type="button" data-lang="hi" aria-pressed="${lang()==='hi'}">हिंदी</button></div>
-    <form id="authForm" class="stack card">
+    <div><h1>${esc(tenant?t('tenantLogin'):signup?t('signup'):t('login'))}</h1><p class="sub" style="margin:0">${esc(tenant?t('tenantTag'):t('tagline'))}</p></div>
+    <div class="seg" role="group" aria-label="${esc(t('iAm'))}"><button type="button" data-role="owner" aria-pressed="${!tenant}">${esc(t('roleOwner'))}</button><button type="button" data-role="tenant" aria-pressed="${tenant}">${esc(t('roleTenant'))}</button></div>
+    ${tenant?`<form id="tlForm" class="stack card">
+      <div><label for="tph">${esc(t('phone'))}</label><input id="tph" type="tel" inputmode="tel" autocomplete="tel" required placeholder="98765 43210" value="${esc(S.authPhone||'')}"></div>
+      <div><label for="tpin">${esc(t('pin'))}</label><input id="tpin" type="password" inputmode="numeric" pattern="[0-9]{4,6}" maxlength="6" autocomplete="current-password" required></div>
+      <div class="err" id="authErr" role="alert">${esc(S.authMsg)}</div>
+      <button class="btn block" id="authGo">${esc(t('login'))}</button>
+      <p class="sub" style="margin:0">${esc(t('pinHelp'))}</p></form>`
+    :`<form id="authForm" class="stack card">
       <div><label for="em">${esc(t('email'))}</label><input id="em" type="email" autocomplete="email" required value="${esc(S.authEmail||'')}"></div>
       <div><label for="pw">${esc(t('password'))}</label><input id="pw" type="password" minlength="6" autocomplete="${signup?'new-password':'current-password'}" required></div>
       <div class="err" id="authErr" role="alert">${esc(S.authMsg)}</div>
       <button class="btn block" id="authGo">${esc(signup?t('signup'):t('login'))}</button>
       <button class="btn ghost block" type="button" id="authSwap">${esc(signup?t('haveAcc'):t('noAcc'))}</button>
       ${signup?'':`<button class="linkbtn" type="button" id="forgot">${esc(t('forgot'))}</button>`}
-    </form></div>`;
+    </form>`}
+    <div class="seg" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="${lang()==='en'}">English</button><button type="button" data-lang="hi" aria-pressed="${lang()==='hi'}">हिंदी</button></div>
+    </div>`;
+  $$('[data-role]').forEach(b=>b.onclick=()=>{ S.authRole=b.dataset.role; store.set('dd_role',S.authRole); S.authMsg=''; renderAuth(); });
+  $$('[data-lang]').forEach(b=>b.onclick=()=>{store.set('dd_lang',b.dataset.lang); const em=$('#em'); if(em) S.authEmail=em.value; renderAuth();});
+  const fail = m => { if($('#authGo')) $('#authGo').disabled=false; S.authMsg=m; if($('#authErr')) $('#authErr').textContent=m; };
+  if(tenant){
+    $('#tlForm').onsubmit=async e=>{ e.preventDefault(); const d=phoneDigits($('#tph').value), pin=$('#tpin').value.trim(); S.authPhone=$('#tph').value;
+      if(!/^[6-9]\d{9}$/.test(d)) return fail(t('badPhone'));
+      if(!/^\d{4,6}$/.test(pin)) return fail(t('badPin'));
+      $('#authGo').disabled=true;
+      const r=await sb.auth.signInWithPassword({email:phoneEmail(d),password:pinPassword(pin)});
+      if(r.error) return fail(/invalid/i.test(r.error.message)?t('badTenantLogin'):r.error.message); };
+    return;
+  }
   $('#authSwap').onclick=()=>{S.authMode=signup?'login':'signup';S.authMsg='';renderAuth();};
-  $$('[data-lang]').forEach(b=>b.onclick=()=>{store.set('dd_lang',b.dataset.lang);S.authEmail=$('#em').value;renderAuth();});
   const fg=$('#forgot'); if(fg) fg.onclick=async()=>{ const em=$('#em').value.trim(); if(!em){ $('#authErr').textContent=t('enterEmail'); return; }
     const r=await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});
     $('#authErr').textContent = r.error ? r.error.message : t('resetSent'); };
   $('#authForm').onsubmit=async e=>{
     e.preventDefault(); const em=$('#em').value.trim(), pw=$('#pw').value; $('#authGo').disabled=true; S.authEmail=em;
-    const fail = m => { if($('#authGo')) $('#authGo').disabled=false; S.authMsg=m; if($('#authErr')) $('#authErr').textContent=m; };
     if(signup){ // account is created already confirmed (no confirmation email), then we log in
       let res; try{ res=await fetch(SUPABASE_URL+'/functions/v1/signup',{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_KEY},body:JSON.stringify({email:em,password:pw})}); }catch(e){ return fail(t('netErr')); }
       const j=await res.json().catch(()=>({}));
@@ -478,6 +548,18 @@ function renderAuth(){
     if($('#authGo')) $('#authGo').disabled=false;
     if(r.error) return fail(/invalid/i.test(r.error.message)?t('badLogin'):r.error.message);
   };
+}
+async function goTenant(){
+  $('#layer').innerHTML='';
+  $('#app').innerHTML=`<p class="empty">${esc(t('loading'))}</p>`;
+  const r=await sb.rpc('my_tenancies');
+  const rows=(r.data||[]);
+  if(rows.length===1 || (rows.length && rows[0].active && !rows.slice(1).some(x=>x.active))){ location.replace('pay.html?t='+encodeURIComponent(rows[0].pay_token)+'&me=1'); return; }
+  $('#app').innerHTML=`<div class="auth stack"><div class="brand"><img src="icon.svg" alt="">DueDesk</div>
+    <div class="card stack">${rows.length?`<h2>${esc(t('pickRoom'))}</h2>${rows.map(x=>`<a class="item" style="text-decoration:none;color:inherit" href="pay.html?t=${encodeURIComponent(x.pay_token)}&me=1"><div class="grow"><b>${esc(x.place)}</b><div class="sub">${esc([x.name,x.room].filter(Boolean).join(' · '))}</div></div><span class="sub">›</span></a>`).join('')}`
+      :`<h2>${esc(t('noRoom'))}</h2><p class="sub" style="margin:0">${esc(t('noRoomHelp'))}</p>`}
+    <button class="btn ghost" id="tlo">${esc(t('logout'))}</button></div></div>`;
+  $('#tlo').onclick=()=>sb.auth.signOut();
 }
 function openRecovery(){
   sheet(`<form id="rcForm" class="stack"><h2>${esc(t('setPassword'))}</h2>
@@ -502,6 +584,7 @@ const TABS=[['home','dashboard'],['list','tenants'],['pay','payments'],['setting
 function render(){
   document.documentElement.lang = lang()==='hi'?'hi':'en';
   if(!S.session) return renderAuth();
+  if(S.tenantMode) return;
   if(!S.loaded){ $('#app').innerHTML=`<p class="empty">${esc(t('loading'))}</p>`; return; }
   if(S.dbOld){ $('#layer').innerHTML=''; $('#app').innerHTML=`<div class="auth stack" style="max-width:640px">
     <div class="brand"><img src="icon.svg" alt="">DueDesk</div>
@@ -579,6 +662,7 @@ function viewHome(){
     ${claims.length?`<div class="card" style="margin-top:16px;border-color:var(--info)"><div class="chead"><h3>${esc(t('waitingConfirm'))}</h3><span class="chip info">${claims.length}</span></div>${claims.map(claimRow).join('')}</div>`:''}
     <div class="dgrid">
       <div class="stack" style="gap:16px">
+        ${rentMonthCard(V)}
         <div class="card"><div class="chead"><h3>${esc(t('needsAttention'))}</h3><span class="amt num">${money(toCollect)}</span></div>
           ${hot.length?hot.map(x=>rowT(x,false,true)).join(''):`<div class="empty">${esc(t('allClear'))}</div>`}</div>
         ${week.length?`<div class="card"><div class="chead"><h3>${esc(t('upcomingWeek'))}</h3></div>${week.map(x=>rowT(x,true)).join('')}</div>`:''}
@@ -590,6 +674,21 @@ function viewHome(){
           ${chart(pays)}</div>
       </div>
     </div>${fab()}`;
+}
+function rentMonthCard(V){
+  const td=today(), rows=V.filter(x=>x.is_active && x.cur);
+  if(!rows.length) return '';
+  const total=rows.reduce((s,x)=>s+x.cur.amount,0), got=rows.reduce((s,x)=>s+x.cur.paid,0);
+  const paidN=rows.filter(x=>x.cur.status==='paid').length, partN=rows.filter(x=>x.cur.status==='part').length;
+  const rank={due:0,part:1,upcoming:2,paid:3};
+  rows.sort((a,b)=>rank[a.cur.status]-rank[b.cur.status]||a.name.localeCompare(b.name));
+  return `<div class="card"><div class="chead"><div><h3>${esc(t('rentOf',{m:P(td).toLocaleDateString(loc(),{month:'long',year:'numeric'})}))}</h3>
+      <div class="sub">${esc(t('paidOfN',{a:paidN,b:rows.length}))} · <span class="num">${money(got)}</span> / <span class="num">${money(total)}</span></div></div></div>
+    <div class="meter" role="img" aria-label="${esc(t('paidOfN',{a:paidN,b:rows.length}))}"><i style="width:${total?got/total*100:0}%"></i></div>
+    <div style="margin-top:6px">${rows.map(x=>`<div class="item" data-open="${x.tenant_id}" role="button" tabindex="0">
+      <div class="avatar">${esc(x.name.charAt(0).toUpperCase())}</div>
+      <div class="grow"><div class="ell" style="font-weight:600">${esc(x.name)}${S.logins[x.tenant_id]?` <span class="chip info" title="${esc(t('loginOn'))}">${esc(t('appUser'))}</span>`:''}</div><div class="sub ell">${esc([x.room,mRange(x.cur.c)].filter(Boolean).join(' · '))}</div></div>
+      <div style="text-align:right"><div class="num" style="font-weight:700">${money(x.cur.amount)}</div>${mChip(x.cur)}</div></div>`).join('')}</div></div>`;
 }
 function claimRow(c){
   const x=byTenant()[c.tenant_id]||{name:'?'};
@@ -933,11 +1032,12 @@ function openTenant(id){
       <div class="sub">${x.room?esc(x.room)+' · ':''}${S.props.length>1?esc(propName(x))+' · ':''}${money(x.rent_amount)}${esc(t('perMonth'))} · ${esc(t('dueOn',{d:x.due_day}))}</div>
       <div class="sub">${esc(t('joined',{d:fdate(x.join_date,true)}))}${x.left_date?' · '+esc(t('lastDay',{d:fdate(x.left_date,true)})):''}</div></div>${statusChip(x)}</div>
     <div class="card"><div class="row sb"><span class="sub">${esc(x.bal>0?t('pending'):t('balance'))}</span><span class="amt num" style="font-size:26px;color:var(${x.bal>0?'--bad':x.bal<0?'--good':'--ink'})">${x.bal<0?'+':''}${money(x.bal)}</span></div>${dep}</div>
-    ${refund}${link}${acts}
+    ${refund}${loginCard(x)}${link}${acts}
     <button class="btn block" id="pay">${esc(t('addPayment'))}</button>${settle}
     <div class="grid2"><button class="btn soft sm" id="mExtra">+ ${esc(t('extraCharge'))}</button><button class="btn soft sm" id="mWaive">− ${esc(t('waiver'))}</button></div>
     <div class="grid2"><button class="btn ghost sm" id="mRent">${esc(t('changeRent'))}</button><button class="btn ghost sm" id="mEdit">${esc(t('edit'))}</button></div>
     <div class="grid2"><button class="btn ghost sm" id="mShare">${esc(t('statement'))}</button>${x.is_active?`<button class="btn danger sm" id="mOut">${esc(t('moveOut'))}</button>`:`<button class="btn ghost sm" id="mBack">${esc(t('rejoin'))}</button>`}</div>
+    <div><div class="sub" style="font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:13px;margin:4px 0">${esc(t('monthWise'))}</div>${monthList(x,12)}</div>
     <div><div class="sub" style="font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:13px;margin:4px 0">${esc(t('history'))}</div><div class="ledger">${lines.length?lines.map(l=>`<div class="line"><span>${fdate(l.d)} · ${esc(l.l)}${l.online?` <span class="chip good">${esc(t('online2'))}</span>`:''}${(l.pay||l.adj)?` <button class="btn xs danger" ${l.pay?'data-delp':'data-delc'}="${l.id}">${esc(t('deleteQ'))}</button>`:''}</span><span class="num" style="font-weight:600;white-space:nowrap;color:var(${l.k==='c'?'--ink':'--good'})">${l.k==='c'?'':'−'}${money(l.a)}</span></div>`).join(''):`<div class="empty">${esc(t('noHistory'))}</div>`}</div></div>
     <button class="btn ghost block" id="cl">${esc(t('close'))}</button></div>`);
   $('#cl').onclick=closeSheet;
@@ -948,6 +1048,8 @@ function openTenant(id){
   $('#mEdit').onclick=()=>openEdit(x);
   $('#mShare').onclick=()=>shareStatement(x);
   if($('#mCopy')) $('#mCopy').onclick=()=>copyLink(x);
+  if($('#mPin')) $('#mPin').onclick=()=>openPin(x);
+  if($('#mLoginOff')) armed($('#mLoginOff'), async()=>{ const r=await callTL({action:'remove',tenant_id:x.tenant_id}); if(!r.ok) return toast(t('netErr')); await refresh(); openTenant(id); });
   if($('#mReset')) armed($('#mReset'), async()=>{ const r=await sb.rpc('new_pay_link',{p_tenant:x.tenant_id}); if(r.error) return toast(errText(r.error)); toast(t('resetDone')); await refresh(); openTenant(id); });
   if($('#mOut')) $('#mOut').onclick=()=>openMoveOut(x);
   if($('#mBack')) armed($('#mBack'), async()=>{ const r=await sb.from('tenants').update({is_active:true,left_date:null}).eq('id',x.tenant_id);
@@ -956,6 +1058,41 @@ function openTenant(id){
     if(r.error) return toast(errText(r.error)); await refresh(); toast(t('saved')); openTenant(id); };
   $$('[data-delp]').forEach(b=>armed(b, async()=>{ const r=await sb.from('payments').delete().eq('id',b.dataset.delp); if(r.error) return toast(errText(r.error)); await refresh(); toast(t('deleted')); openTenant(id); }));
   $$('[data-delc]').forEach(b=>armed(b, async()=>{ const r=await sb.rpc('delete_adjustment',{p_charge:b.dataset.delc}); if(r.error) return toast(errText(r.error)); await refresh(); toast(t('deleted')); openTenant(id); }));
+}
+const appUrl = () => new URL('./', location.href).href;
+function loginText(x, pin){ return t('loginMsg',{name:x.name,prop:propName(x),url:appUrl()+'#tenant',phone:phoneDigits(x.phone),pin}); }
+function loginCard(x){
+  const on=S.logins[x.tenant_id];
+  if(!x.phone) return `<div class="card" style="padding:12px 14px"><b>${esc(t('tenantLoginT'))}</b><div class="sub">${esc(t('needPhone'))}</div></div>`;
+  return `<div class="card stack" style="padding:12px 14px"><div class="row sb"><b>${esc(t('tenantLoginT'))}</b>${on?`<span class="chip good">✓ ${esc(t('loginOn'))}</span>`:`<span class="chip off">${esc(t('loginOff'))}</span>`}</div>
+    <div class="sub" style="margin-top:-6px">${esc(on?t('loginOnHelp',{p:on}):t('loginOffHelp'))}</div>
+    <div class="grid2"><button class="btn sm ${on?'soft':''}" id="mPin">${esc(on?t('changePin'):t('setPin'))}</button>${on?`<button class="btn sm danger" id="mLoginOff">${esc(t('turnOff'))}</button>`:''}</div></div>`;
+}
+async function callTL(body){
+  const { data } = await sb.auth.getSession();
+  try{ const r=await fetch(SUPABASE_URL+'/functions/v1/tenant-login',{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_KEY,Authorization:'Bearer '+(data.session?data.session.access_token:'')},body:JSON.stringify(body)});
+    let j={}; try{ j=await r.json(); }catch(e){} return {ok:r.ok,status:r.status,data:j}; }catch(e){ return {ok:false,status:0,data:{}}; }
+}
+function openPin(x){
+  const suggest=String(Math.floor(1000+Math.random()*9000));
+  sheet(`<form id="pinForm" class="stack"><h2>${esc(t('setPin'))} · ${esc(x.name)}</h2>
+   <p class="sub" style="margin:0">${esc(t('pinFormHelp',{p:phoneDigits(x.phone)}))}</p>
+   <div><label for="npin">${esc(t('pin'))}</label><input id="npin" inputmode="numeric" pattern="[0-9]{4,6}" maxlength="6" required value="${suggest}" autocomplete="off"></div>
+   <div class="grid2"><button type="button" class="btn ghost" id="cx">${esc(t('cancel'))}</button><button class="btn" id="sv">${esc(t('save'))}</button></div></form>`);
+  $('#cx').onclick=()=>openTenant(x.tenant_id);
+  $('#pinForm').onsubmit=async e=>{ e.preventDefault(); const pin=$('#npin').value.trim();
+    if(!/^\d{4,6}$/.test(pin)) return toast(t('badPin'));
+    $('#sv').disabled=true;
+    const r=await callTL({action:'set',tenant_id:x.tenant_id,pin});
+    if(!r.ok){ $('#sv').disabled=false; return toast(r.data.error==='NO_PHONE'?t('needPhone'):r.data.error==='BAD_PIN'?t('badPin'):r.status===404?t('notDeployed'):t('netErr')); }
+    await refresh();
+    const msg=loginText(x,pin), wa=`https://wa.me/${cleanPhone(x.phone)}?text=${encodeURIComponent(msg)}`;
+    sheet(`<div class="stack"><h2>✓ ${esc(t('loginReady'))}</h2><p class="sub" style="margin:0">${esc(t('sendDetails'))}</p>
+      <div class="code" style="white-space:pre-wrap">${esc(msg)}</div>
+      <div class="grid2"><button class="btn soft" id="cpy">${esc(t('copyMsg'))}</button><a class="btn" target="_blank" rel="noopener" href="${esc(wa)}">${ICON.send} WhatsApp</a></div>
+      <button class="btn ghost" id="bk">${esc(t('close'))}</button></div>`);
+    $('#cpy').onclick=async()=>{ try{ await navigator.clipboard.writeText(msg); toast(t('linkCopied')); }catch(e){} };
+    $('#bk').onclick=()=>openTenant(x.tenant_id); };
 }
 function armed(btn, fn){ let a=false; btn.onclick=async e=>{ if(e) e.stopPropagation(); if(!a){ a=true; btn.dataset.orig=btn.textContent; btn.textContent=t('sure'); setTimeout(()=>{ if(a&&btn.isConnected){ a=false; btn.textContent=btn.dataset.orig; } },4000); return; } btn.disabled=true; await fn(); }; }
 function openPay(x){
@@ -1140,7 +1277,8 @@ async function syncOnline(){ // catches online payments whose page was closed ea
 sb.auth.onAuthStateChange((ev,session)=>{
   const was=S.session&&S.session.user.id; S.session=session;
   if(ev==='PASSWORD_RECOVERY') S.recovery=true;
-  if(!session){ stopLive(); Object.assign(S,{authMode:'login',authMsg:'',owner:null,props:[],tenants:[],charges:[],payments:[],claims:[],loaded:false,tab:'home',pid:'all',synced:false}); render(); return; }
+  if(!session){ stopLive(); Object.assign(S,{tenantMode:false,authMode:'login',authMsg:'',owner:null,props:[],tenants:[],charges:[],payments:[],claims:[],loaded:false,tab:'home',pid:'all',synced:false}); render(); return; }
+  if(isTenantUser(session.user)){ S.tenantMode=true; store.set('dd_role','tenant'); goTenant(); return; }
   if(was!==session.user.id){ S.loaded=false; loadCache(); render(); setTimeout(async()=>{ await refresh(); startLive(); syncOnline(); },0); }
 });
 sb.auth.getSession().then(({data})=>{ if(!data.session) render(); });

@@ -15,6 +15,7 @@ Deno.serve(async (req) => {
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.password || "");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 254) return json({ error: "BAD_EMAIL" }, 400);
+  if (email.endsWith("@tenant.duedesk.app")) return json({ error: "BAD_EMAIL" }, 400);
   if (password.length < 6 || password.length > 72) return json({ error: "WEAK_PASSWORD" }, 400);
   const url = Deno.env.get("SUPABASE_URL")!;
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

@@ -701,7 +701,7 @@ language sql stable security definer set search_path = public as $$
         union all
         select jsonb_build_object('d', y.paid_on, 'k', 'pay', 'a', y.amount, 'm', y.mode, 'ref', y.ref)
           from payments y where y.tenant_id = t.id
-        order by 1 desc limit 30) x), '[]'::jsonb),
+        order by 1 desc limit 300) x), '[]'::jsonb),
     'pending', coalesce((select jsonb_agg(jsonb_build_object('amount', c.amount, 'utr', c.utr, 'at', c.created_at) order by c.created_at desc)
           from payment_claims c where c.tenant_id = t.id and c.status = 'pending'), '[]'::jsonb)
   )
@@ -887,8 +887,77 @@ begin
   end if;
 end $$;
 
+
+-- =====================================================================
+-- TENANT LOGIN (phone number + PIN)
+-- Tenant auth users carry user_metadata.role = 'tenant' and are never made owners.
+-- Accounts are created by the `tenant-login` Edge Function when the owner sets a PIN.
+-- =====================================================================
+create or replace function handle_new_user() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(new.raw_user_meta_data->>'role', '') = 'tenant' then return new; end if;
+  insert into owners (id, phone) values (new.id, new.phone) on conflict do nothing;
+  return new;
+end $$;
+revoke execute on function handle_new_user() from public, anon, authenticated;
+
+create table if not exists tenant_logins (
+  tenant_id uuid primary key references tenants(id) on delete cascade,
+  owner_id uuid not null references owners(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  phone text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists tenant_logins_user_idx on tenant_logins(user_id);
+alter table tenant_logins enable row level security;
+drop policy if exists "owner reads own tenant logins" on tenant_logins;
+drop policy if exists "owner removes own tenant logins" on tenant_logins;
+drop policy if exists "tenant reads own login" on tenant_logins;
+create policy "owner reads own tenant logins" on tenant_logins for select using (owner_id = auth.uid());
+create policy "owner removes own tenant logins" on tenant_logins for delete using (owner_id = auth.uid());
+create policy "tenant reads own login" on tenant_logins for select using (user_id = auth.uid());
+revoke insert, update on tenant_logins from anon, authenticated;
+
+create or replace function my_tenancies() returns table (pay_token text, name text, place text, room text, active boolean)
+language sql stable security definer set search_path = public as $$
+  select t.pay_token, t.name, p.name, t.room, t.is_active
+    from tenant_logins l join tenants t on t.id = l.tenant_id join properties p on p.id = t.property_id
+   where l.user_id = auth.uid()
+   order by t.is_active desc, t.created_at desc
+$$;
+revoke execute on function my_tenancies() from public, anon;
+grant execute on function my_tenancies() to authenticated;
+
+create or replace function svc_tenant_for_owner(p_owner uuid, p_tenant uuid) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object('name', t.name, 'phone', t.phone, 'place', p.name)
+    from tenants t join properties p on p.id = t.property_id
+   where t.id = p_tenant and t.owner_id = p_owner
+$$;
+create or replace function svc_user_by_email(p_email text) returns uuid
+language sql stable security definer set search_path = public, auth as $$
+  select id from auth.users where lower(email) = lower(p_email) limit 1
+$$;
+create or replace function svc_link_tenant_login(p_owner uuid, p_tenant uuid, p_user uuid, p_phone text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from tenants where id = p_tenant and owner_id = p_owner) then raise exception 'NOT_ALLOWED'; end if;
+  insert into tenant_logins (tenant_id, owner_id, user_id, phone) values (p_tenant, p_owner, p_user, p_phone)
+  on conflict (tenant_id) do update set user_id = excluded.user_id, phone = excluded.phone, created_at = now();
+end $$;
+do $$
+declare f text;
+begin
+  foreach f in array array['svc_tenant_for_owner(uuid,uuid)', 'svc_user_by_email(text)', 'svc_link_tenant_login(uuid,uuid,uuid,text)'] loop
+    execute format('revoke execute on function %s from public, anon, authenticated', f);
+    execute format('grant execute on function %s to service_role', f);
+  end loop;
+end $$;
+
 -- ---------- owners created before this script --------------------------
-insert into owners (id, phone) select id, phone from auth.users on conflict do nothing;
+insert into owners (id, phone) select id, phone from auth.users
+ where coalesce(raw_user_meta_data->>'role', '') <> 'tenant' on conflict do nothing;
 
 -- ---------- scheduled jobs (Supabase) ----------------------------------
 --   00:35 IST  bill everyone          (19:05 UTC)

@@ -98,7 +98,7 @@ const L = {
   history:'Your history', rent:'Rent', extra:'Extra', discount:'Discount', paid:'Paid', viaOnline:'online', viaUpi:'UPI', viaCash:'cash', viaBank:'bank', viaOther:'other', viaDeposit:'from deposit',
   noOnline:'The owner has not set up online payment yet. Please pay the owner directly.', callOwner:'Call owner', bad:'This pay link is not valid. Ask your owner to send you a new one.',
   failed:'Payment did not go through. No money was taken — or if it was, it will show here within a few minutes.', tooMany:'Too many tries. Please wait a while.', dupUtr:'This UTR was already sent.', badUtr:'Please enter the UTR (6–30 letters or digits).',
-  badAmt:'Enter an amount between ₹1 and ₹5,00,000.', netErr:'Network problem. Please try again.', left:'You have moved out', powered:'Powered by DueDesk', checking:'Checking…' },
+  badAmt:'Enter an amount between ₹1 and ₹5,00,000.', netErr:'Network problem. Please try again.', left:'You have moved out', powered:'Powered by DueDesk', checking:'Checking…', monthWise:'Month-wise rent', mPaid:'Paid', mPart:'{a} left', mDue:'Pending', mUpcoming:'Upcoming', from:'From', logout:'Log out' },
  hi:{ hello:'नमस्ते {n}', due:'बकाया रकम', dueSince:'{d} से बाकी', dueToday:'आज देना है', allPaid:'सब चुका दिया', advance:'एडवांस जमा', upcoming:'अगला किराया {a}, {d} तारीख को',
   payOnline:'{a} ऑनलाइन दें', onlineSub:'UPI · कार्ड · नेट बैंकिंग — Razorpay से सुरक्षित', payUpi:'UPI ऐप से दें', upiSub:'सीधे मालिक को जाएगा',
   amount:'रकम (₹)', change:'रकम बदलें', payAdvance:'अगले महीने का एडवांस दें',
@@ -109,7 +109,7 @@ const L = {
   history:'आपका हिसाब', rent:'किराया', extra:'अलग चार्ज', discount:'छूट', paid:'दिया', viaOnline:'ऑनलाइन', viaUpi:'UPI', viaCash:'कैश', viaBank:'बैंक', viaOther:'अन्य', viaDeposit:'डिपॉज़िट से',
   noOnline:'मालिक ने अभी ऑनलाइन पेमेंट चालू नहीं किया है। कृपया सीधे मालिक को दें।', callOwner:'मालिक को कॉल करें', bad:'यह पेमेंट लिंक सही नहीं है। मालिक से नया लिंक मांगें।',
   failed:'पेमेंट नहीं हुआ। पैसे नहीं कटे — अगर कटे हैं तो कुछ मिनट में यहां दिख जाएंगे।', tooMany:'बहुत बार कोशिश हुई। थोड़ी देर बाद करें।', dupUtr:'यह UTR पहले ही भेजा जा चुका है।', badUtr:'कृपया UTR लिखें (6–30 अक्षर या अंक)।',
-  badAmt:'₹1 से ₹5,00,000 के बीच रकम लिखें।', netErr:'नेटवर्क की दिक्कत। फिर से कोशिश करें।', left:'आप कमरा छोड़ चुके हैं', powered:'DueDesk द्वारा', checking:'देख रहे हैं…' }
+  badAmt:'₹1 से ₹5,00,000 के बीच रकम लिखें।', netErr:'नेटवर्क की दिक्कत। फिर से कोशिश करें।', left:'आप कमरा छोड़ चुके हैं', powered:'DueDesk द्वारा', checking:'देख रहे हैं…', monthWise:'महीने के हिसाब से किराया', mPaid:'दे दिया', mPart:'{a} बाकी', mDue:'बाकी', mUpcoming:'आने वाला', from:'से', logout:'लॉग आउट' }
 };
 const S = { d:null, lang:null, view:'home', amount:null, editAmt:false, receipt:null };
 const $ = s => document.querySelector(s);
@@ -192,9 +192,30 @@ function render(){
       ${d.online ? `<button class="btn" id="payOnline">${esc(t('payOnline',{a:money(amt)}))}<small>${esc(t('onlineSub'))}</small></button>` : ''}
       ${d.upi ? `<button class="btn ${d.online ? 'soft' : ''}" id="payUpi">${esc(t('payUpi'))}<small>${esc(t('upiSub'))}</small></button>` : ''}
     </div>` : `<div class="notice">${esc(t('noOnline'))}</div>`}
+    ${months()}
     ${history()}
   </div>${footer()}`;
   bind();
+}
+// Month-wise rent: payments and discounts settle the oldest dues first
+function monthWise(){
+  const h = S.d.history || [], td = today();
+  const ch = h.filter(x => x.k !== 'pay' && Number(x.a) > 0).sort((a,b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
+  let credit = h.filter(x => x.k === 'pay').reduce((s,x) => s + Number(x.a), 0) - h.filter(x => x.k === 'waiver').reduce((s,x) => s + Number(x.a), 0);
+  const out = [];
+  for (const c of ch) { const a = Number(c.a), cov = Math.max(0, Math.min(a, credit)); credit -= cov;
+    if (c.k !== 'rent') continue;
+    out.push({ d: c.d, n: c.n, l: c.l, amount: a, left: a - cov, status: cov >= a ? 'paid' : cov > 0 ? 'part' : (c.d > td ? 'upcoming' : 'due') }); }
+  return out.reverse();
+}
+function months(){
+  const ms = monthWise().slice(0, 12);
+  if (!ms.length) return '';
+  const chip = m => m.status === 'paid' ? `<span class="chip good">✓ ${esc(t('mPaid'))}</span>` : m.status === 'part' ? `<span class="chip warn">${esc(t('mPart',{a:money(m.left)}))}</span>`
+    : m.status === 'upcoming' ? `<span class="chip">${esc(t('mUpcoming'))}</span>` : `<span class="chip bad">${esc(t('mDue'))}</span>`;
+  return `<div><div class="sec">${esc(t('monthWise'))}</div><div class="card hist" style="padding:6px 18px">${ms.map(m =>
+    `<div class="line" style="align-items:center"><span><b>${esc(P(m.d).toLocaleDateString(lang()==='hi'?'hi-IN':'en-IN',{month:'long',year:'numeric'}))}</b><br><span class="sub">${esc(t('from'))} ${esc(fdate(m.d))}${m.l && m.l.startsWith('Rent ·') ? ' · ' + m.n + (lang()==='hi' ? ' दिन' : ' days') : ''}</span></span>
+     <span style="text-align:right"><span class="num" style="font-weight:700">${money(m.amount)}</span><br>${chip(m)}</span></div>`).join('')}</div></div>`;
 }
 function history(){
   const h = (S.d.history || []).slice(0, 12);
@@ -202,13 +223,16 @@ function history(){
   return `<div><div class="sec">${esc(t('history'))}</div><div class="card hist" style="padding:6px 18px">${h.map(x =>
     `<div class="line"><span>${esc(fdate(x.d))} · ${esc(histLabel(x))}</span><span class="num ${x.k==='pay'||x.k==='waiver'?'paid':''}">${x.k==='pay'||x.k==='waiver'?'−':''}${money(x.a)}</span></div>`).join('')}</div></div>`;
 }
+const AUTH_KEY = 'sb-' + new URL(CFG.SUPABASE_URL).hostname.split('.')[0] + '-auth-token';
+function loggedIn(){ try { return !!localStorage.getItem(AUTH_KEY); } catch(e) { return false; } }
 function footer(){
   const ph = S.d && S.d.owner_phone;
-  return `<div class="foot">${ph ? `<a href="tel:${esc(ph)}">${esc(t('callOwner'))}</a> · ` : ''}${esc(t('powered'))}</div>`;
+  return `<div class="foot">${ph ? `<a href="tel:${esc(ph)}">${esc(t('callOwner'))}</a> · ` : ''}${loggedIn() ? `<button class="link" id="logout" style="font-size:13px">${esc(t('logout'))}</button> · ` : ''}${esc(t('powered'))}</div>`;
 }
 function curAmount(){ const i = $('#amt'); const v = Math.round(Number(i ? i.value : (S.amount ?? suggested()))); return v; }
 function validAmt(v){ return v >= 1 && v <= 500000; }
 function bind(){
+  const lo = $('#logout'); if (lo) lo.onclick = () => { try { localStorage.removeItem(AUTH_KEY); } catch(e) {} location.href = 'index.html#tenant'; };
   const lg = $('#lang'); if (lg) lg.onclick = () => { S.lang = lang()==='hi' ? 'en' : 'hi'; try { localStorage.setItem('dd_pay_lang', S.lang); } catch(e) {} render(); };
   const ch = $('#chg'); if (ch) ch.onclick = () => { S.editAmt = true; render(); const i = $('#amt'); i.focus(); i.select(); };
   const ai = $('#amt'); if (ai) ai.oninput = () => { S.amount = Math.round(Number(ai.value)) || 0; const b = $('#payOnline');
