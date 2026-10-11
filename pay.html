@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f6b5c">
+<meta name="robots" content="noindex">
+<title>Pay rent · DueDesk</title>
+<link rel="icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Hind:wght@400;500;600&display=swap">
+<script src="config.js"></script>
+<style>
+:root{
+  --bg:#f1f4f1; --surface:#ffffff; --ink:#14201b; --muted:#5d6b64; --line:#dbe3dd;
+  --accent:#0f6b5c; --accent-ink:#ffffff; --accent-soft:#dff0eb;
+  --good:#2f7d4f; --good-soft:#e1f1e7; --warn:#a96a10; --warn-soft:#f8ecd6; --bad:#b3382c; --bad-soft:#f7e0dd;
+  --display:'Bricolage Grotesque','Hind',system-ui,sans-serif;
+  --body:'Hind','Noto Sans Devanagari',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1512; --surface:#16201b; --ink:#e6eee9; --muted:#97a69d; --line:#25332c;
+  --accent:#4cc3a8; --accent-ink:#06231c; --accent-soft:#17342d;
+  --good:#6fcf97; --good-soft:#173324; --warn:#e3b05a; --warn-soft:#38290f; --bad:#f08a7e; --bad-soft:#3b1d19; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0e1512; --surface:#16201b; --ink:#e6eee9; --muted:#97a69d; --line:#25332c;
+  --accent:#4cc3a8; --accent-ink:#06231c; --accent-soft:#17342d;
+  --good:#6fcf97; --good-soft:#173324; --warn:#e3b05a; --warn-soft:#38290f; --bad:#f08a7e; --bad-soft:#3b1d19; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--body);-webkit-text-size-adjust:100%}
+button,input{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+main{max-width:480px;margin:0 auto;padding:16px 16px calc(32px + env(safe-area-inset-bottom,0px));padding-top:calc(16px + env(safe-area-inset-top,0px))}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.top .place{font:700 20px var(--display);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top .place small{display:block;font:500 13px var(--body);color:var(--muted)}
+.lang{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px;font-weight:600;font-size:14px;cursor:pointer;min-height:36px;flex:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.hello{color:var(--muted);font-size:15px}
+.due{font:700 44px/1.1 var(--display);margin:4px 0 2px}
+.due.good{color:var(--good)}
+.sub{color:var(--muted);font-size:14px}
+.chip{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;font-weight:600}
+.chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.good{background:var(--good-soft);color:var(--good)}
+.btn{border:0;border-radius:12px;padding:13px 16px;font-weight:600;background:var(--accent);color:var(--accent-ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:52px;width:100%;text-decoration:none;text-align:center}
+.btn small{font-weight:500;font-size:12px;opacity:.85}
+.btn.soft{background:var(--accent-soft);color:var(--accent)}
+.btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent);min-height:44px;padding:8px 14px}
+.btn:disabled{opacity:.55}
+.btn:focus-visible,input:focus-visible,.lang:focus-visible,.link:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px}
+input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;min-height:46px}
+.amtrow{display:flex;align-items:center;gap:8px}
+.amtrow span{font:700 22px var(--display)}
+.amtrow input{font:700 22px var(--display);padding:8px 12px}
+.link{background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;padding:4px 0;text-decoration:underline}
+.notice{border-radius:12px;padding:12px 14px;background:var(--warn-soft);color:var(--warn);font-weight:500}
+.notice.info{background:var(--accent-soft);color:var(--accent)}
+.qr{display:grid;place-items:center;background:#fff;border-radius:12px;padding:12px;width:max-content;margin:0 auto}
+.qr svg{display:block;width:200px;height:200px}
+.upiid{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 8px 8px 12px;font-weight:600;word-break:break-all}
+.upiid button{flex:none}
+.steps{margin:0;padding-left:20px;color:var(--muted);font-size:14px}
+.hist .line{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:15px}
+.hist .line:last-child{border:0}
+.hist .paid{color:var(--good);font-weight:600}
+.done{text-align:center}
+.tick{width:72px;height:72px;border-radius:50%;background:var(--good-soft);color:var(--good);display:grid;place-items:center;margin:4px auto 8px}
+.tick svg{width:38px;height:38px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:15px;border-bottom:1px solid var(--line)}
+.kv:last-child{border:0}
+.kv span:first-child{color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:13px;margin-top:20px}
+.foot a{color:var(--accent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:20;width:max-content;max-width:min(90vw,440px);text-align:center;font-weight:500}
+.sec{font:600 13px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+.skeleton{height:180px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<main id="app"><div class="skeleton" aria-busy="true"></div></main>
+<script>
+const CFG = window.DUEDESK, FN = CFG.SUPABASE_URL + '/functions/v1/duedesk';
+const TOKEN = new URLSearchParams(location.search).get('t') || (location.hash.match(/t=([\w-]+)/) || [])[1] || '';
+const L = {
+ en:{ hello:'Hi {n}', due:'Amount due', dueSince:'Due since {d}', dueToday:'Due today', allPaid:'All paid', advance:'Paid in advance', upcoming:'Next rent {a} on day {d}',
+  payOnline:'Pay {a} online', onlineSub:'UPI · Card · Net banking — secured by Razorpay', payUpi:'Pay by UPI app', upiSub:'Pays the owner directly',
+  amount:'Amount (₹)', change:'Change amount', payAdvance:'Pay next month in advance',
+  upiTitle:'Pay by UPI', scan:'Scan this QR with any UPI app', or:'or pay to this UPI ID', copy:'Copy', copied:'Copied', openApp:'Open UPI app',
+  afterPay:'After paying, tell the owner', utr:'UTR / Transaction ID (12 digits)', utrHelp:'Find it in your UPI app under the payment details.', iPaid:'I have paid {a}', back:'Back',
+  waiting:'{a} by UPI — waiting for the owner to confirm', claimSent:'Sent. The owner will confirm it shortly.',
+  paidOk:'Payment received', paidRef:'Payment ID', paidOn:'Date', newBal:'Balance now', paidTo:'Paid to', doneBtn:'Done', saveShot:'Take a screenshot as your receipt.',
+  history:'Your history', rent:'Rent', extra:'Extra', discount:'Discount', paid:'Paid', viaOnline:'online', viaUpi:'UPI', viaCash:'cash', viaBank:'bank', viaOther:'other', viaDeposit:'from deposit',
+  noOnline:'The owner has not set up online payment yet. Please pay the owner directly.', callOwner:'Call owner', bad:'This pay link is not valid. Ask your owner to send you a new one.',
+  failed:'Payment did not go through. No money was taken — or if it was, it will show here within a few minutes.', tooMany:'Too many tries. Please wait a while.', dupUtr:'This UTR was already sent.', badUtr:'Please enter the UTR (6–30 letters or digits).',
+  badAmt:'Enter an amount between ₹1 and ₹5,00,000.', netErr:'Network problem. Please try again.', left:'You have moved out', powered:'Powered by DueDesk', checking:'Checking…' },
+ hi:{ hello:'नमस्ते {n}', due:'बकाया रकम', dueSince:'{d} से बाकी', dueToday:'आज देना है', allPaid:'सब चुका दिया', advance:'एडवांस जमा', upcoming:'अगला किराया {a}, {d} तारीख को',
+  payOnline:'{a} ऑनलाइन दें', onlineSub:'UPI · कार्ड · नेट बैंकिंग — Razorpay से सुरक्षित', payUpi:'UPI ऐप से दें', upiSub:'सीधे मालिक को जाएगा',
+  amount:'रकम (₹)', change:'रकम बदलें', payAdvance:'अगले महीने का एडवांस दें',
+  upiTitle:'UPI से भुगतान', scan:'किसी भी UPI ऐप से यह QR स्कैन करें', or:'या इस UPI ID पर भेजें', copy:'कॉपी', copied:'कॉपी हो गया', openApp:'UPI ऐप खोलें',
+  afterPay:'भुगतान के बाद मालिक को बताएं', utr:'UTR / ट्रांज़ैक्शन ID (12 अंक)', utrHelp:'यह आपके UPI ऐप में पेमेंट डिटेल में मिलेगा।', iPaid:'मैंने {a} भेज दिए', back:'वापस',
+  waiting:'{a} UPI से — मालिक के कन्फर्म करने का इंतज़ार', claimSent:'भेज दिया। मालिक जल्द कन्फर्म करेंगे।',
+  paidOk:'पेमेंट मिल गया', paidRef:'पेमेंट ID', paidOn:'तारीख', newBal:'अब बाकी', paidTo:'किसको', doneBtn:'ठीक है', saveShot:'रसीद के लिए स्क्रीनशॉट ले लें।',
+  history:'आपका हिसाब', rent:'किराया', extra:'अलग चार्ज', discount:'छूट', paid:'दिया', viaOnline:'ऑनलाइन', viaUpi:'UPI', viaCash:'कैश', viaBank:'बैंक', viaOther:'अन्य', viaDeposit:'डिपॉज़िट से',
+  noOnline:'मालिक ने अभी ऑनलाइन पेमेंट चालू नहीं किया है। कृपया सीधे मालिक को दें।', callOwner:'मालिक को कॉल करें', bad:'यह पेमेंट लिंक सही नहीं है। मालिक से नया लिंक मांगें।',
+  failed:'पेमेंट नहीं हुआ। पैसे नहीं कटे — अगर कटे हैं तो कुछ मिनट में यहां दिख जाएंगे।', tooMany:'बहुत बार कोशिश हुई। थोड़ी देर बाद करें।', dupUtr:'यह UTR पहले ही भेजा जा चुका है।', badUtr:'कृपया UTR लिखें (6–30 अक्षर या अंक)।',
+  badAmt:'₹1 से ₹5,00,000 के बीच रकम लिखें।', netErr:'नेटवर्क की दिक्कत। फिर से कोशिश करें।', left:'आप कमरा छोड़ चुके हैं', powered:'DueDesk द्वारा', checking:'देख रहे हैं…' }
+};
+const S = { d:null, lang:null, view:'home', amount:null, editAmt:false, receipt:null };
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf = new Intl.NumberFormat('en-IN',{maximumFractionDigits:0});
+const money = n => '₹' + nf.format(Math.abs(Math.round(Number(n) || 0)));
+const P = s => { const [y,m,d] = String(s).slice(0,10).split('-').map(Number); return new Date(y, m-1, d); };
+const lang = () => S.lang || (S.d && S.d.lang) || (navigator.language || '').startsWith('hi') && 'hi' || 'en';
+const t = (k, v={}) => { let s = L[lang()][k] ?? L.en[k] ?? k; for (const x in v) s = s.replaceAll('{'+x+'}', v[x]); return s; };
+const fdate = s => P(s).toLocaleDateString(lang()==='hi'?'hi-IN':'en-IN',{day:'numeric',month:'short',year:'numeric'});
+const today = () => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+function toast(m){ const e=document.createElement('div'); e.className='toast'; e.setAttribute('role','status'); e.textContent=m; document.body.appendChild(e); setTimeout(()=>e.remove(),4000); }
+try { S.lang = localStorage.getItem('dd_pay_lang'); } catch(e) {}
+
+async function rpcPortal(){
+  const r = await fetch(CFG.SUPABASE_URL + '/rest/v1/rpc/portal', { method:'POST',
+    headers:{ apikey:CFG.SUPABASE_KEY, 'Content-Type':'application/json' }, body: JSON.stringify({ p_token: TOKEN }) });
+  if (r.status === 404) throw new Error('old');
+  if (!r.ok) throw new Error('net');
+  return r.json();
+}
+async function fn(body){
+  const r = await fetch(FN, { method:'POST', headers:{ apikey:CFG.SUPABASE_KEY, 'Content-Type':'application/json' }, body: JSON.stringify({ token: TOKEN, ...body }) });
+  let j = {}; try { j = await r.json(); } catch(e) {}
+  return { ok: r.ok, status: r.status, data: j };
+}
+function errMsg(code){ return ({ BAD_AMOUNT:t('badAmt'), TOO_MANY:t('tooMany'), DUPLICATE_UTR:t('dupUtr'), BAD_UTR:t('badUtr'), NOT_FOUND:t('bad') })[code] || t('netErr'); }
+
+function suggested(){
+  const d = S.d, due = Number(d.due_now), bal = Number(d.balance);
+  return Math.round(due > 0 ? due : bal > 0 ? bal : Number(d.rent));
+}
+function status(){
+  const d = S.d, due = Number(d.due_now), bal = Number(d.balance);
+  if (due > 0) {
+    const old = oldestUnpaid();
+    return old && old < today() ? `<span class="chip bad">${esc(t('dueSince',{d:fdate(old)}))}</span>` : `<span class="chip warn">${esc(t('dueToday'))}</span>`;
+  }
+  if (bal < 0) return `<span class="chip good">${esc(t('advance'))} ${money(bal)}</span>`;
+  return `<span class="chip good">✓ ${esc(t('allPaid'))}</span>`;
+}
+function oldestUnpaid(){ // payments settle oldest charges first
+  const h = S.d.history || [];
+  const charges = h.filter(x => x.k !== 'pay').sort((a,b) => a.d < b.d ? -1 : 1);
+  let credit = h.filter(x => x.k === 'pay').reduce((s,x) => s + Number(x.a), 0) - charges.filter(x => Number(x.a) < 0).reduce((s,x) => s + Number(x.a), 0);
+  for (const c of charges) { const a = Number(c.a); if (a < 0) continue; if (credit >= a) credit -= a; else return c.d; }
+  return null;
+}
+function histLabel(x){
+  if (x.k === 'pay') return t('paid') + ' · ' + t({online:'viaOnline',upi:'viaUpi',cash:'viaCash',bank:'viaBank',deposit:'viaDeposit'}[x.m] || 'viaOther');
+  if (x.k === 'extra') return t('extra') + (x.l ? ' · ' + x.l : '');
+  if (x.k === 'waiver') return t('discount') + (x.l ? ' · ' + x.l : '');
+  return t('rent') + (x.l && x.l.startsWith('Rent ·') ? ' · ' + x.n + (lang()==='hi' ? ' दिन' : ' days') : '');
+}
+function header(){
+  const d = S.d;
+  return `<div class="top"><div class="place">${esc(d ? d.place : 'DueDesk')}${d && d.room ? `<small>${esc(d.room)}</small>` : ''}</div>
+    <button class="lang" id="lang" aria-label="Language">${lang()==='hi' ? 'English' : 'हिंदी'}</button></div>`;
+}
+function render(){
+  document.documentElement.lang = lang();
+  const app = $('#app');
+  if (!S.d) { app.innerHTML = header() + `<div class="card notice">${esc(t('bad'))}</div>`; bind(); return; }
+  if (S.view === 'done') return renderDone();
+  if (S.view === 'upi') return renderUpi();
+  const d = S.d, due = Number(d.due_now), amt = S.amount ?? suggested();
+  const pend = (d.pending || []).map(p => `<div class="notice info">${esc(t('waiting',{a:money(p.amount)}))}</div>`).join('');
+  const canPay = d.online || d.upi;
+  app.innerHTML = header() + `<div class="stack">
+    <div class="card stack">
+      <div><div class="hello">${esc(t('hello',{n:d.name}))}${d.active ? '' : ' · ' + esc(t('left'))}</div>
+      <div class="due num ${due > 0 ? '' : 'good'}" id="dueAmt">${money(due > 0 ? due : Math.max(0, Number(d.balance)))}</div>
+      <div>${status()}</div></div>
+      ${due <= 0 && d.active ? `<div class="sub">${esc(t('upcoming',{a:money(d.rent), d:d.due_day}))}</div>` : ''}
+    </div>
+    ${pend}
+    ${canPay ? `<div class="card stack">
+      ${S.editAmt ? `<div><label for="amt">${esc(t('amount'))}</label><div class="amtrow"><span>₹</span><input id="amt" type="number" inputmode="numeric" min="1" max="500000" step="1" value="${amt}"></div></div>`
+                  : `<div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="sub">${esc(t('amount'))}: <b class="num" style="color:var(--ink)">${money(amt)}</b></span><button class="link" id="chg">${esc(due > 0 || Number(d.balance) > 0 ? t('change') : t('payAdvance'))}</button></div>`}
+      ${d.online ? `<button class="btn" id="payOnline">${esc(t('payOnline',{a:money(amt)}))}<small>${esc(t('onlineSub'))}</small></button>` : ''}
+      ${d.upi ? `<button class="btn ${d.online ? 'soft' : ''}" id="payUpi">${esc(t('payUpi'))}<small>${esc(t('upiSub'))}</small></button>` : ''}
+    </div>` : `<div class="notice">${esc(t('noOnline'))}</div>`}
+    ${history()}
+  </div>${footer()}`;
+  bind();
+}
+function history(){
+  const h = (S.d.history || []).slice(0, 12);
+  if (!h.length) return '';
+  return `<div><div class="sec">${esc(t('history'))}</div><div class="card hist" style="padding:6px 18px">${h.map(x =>
+    `<div class="line"><span>${esc(fdate(x.d))} · ${esc(histLabel(x))}</span><span class="num ${x.k==='pay'||x.k==='waiver'?'paid':''}">${x.k==='pay'||x.k==='waiver'?'−':''}${money(x.a)}</span></div>`).join('')}</div></div>`;
+}
+function footer(){
+  const ph = S.d && S.d.owner_phone;
+  return `<div class="foot">${ph ? `<a href="tel:${esc(ph)}">${esc(t('callOwner'))}</a> · ` : ''}${esc(t('powered'))}</div>`;
+}
+function curAmount(){ const i = $('#amt'); const v = Math.round(Number(i ? i.value : (S.amount ?? suggested()))); return v; }
+function validAmt(v){ return v >= 1 && v <= 500000; }
+function bind(){
+  const lg = $('#lang'); if (lg) lg.onclick = () => { S.lang = lang()==='hi' ? 'en' : 'hi'; try { localStorage.setItem('dd_pay_lang', S.lang); } catch(e) {} render(); };
+  const ch = $('#chg'); if (ch) ch.onclick = () => { S.editAmt = true; render(); const i = $('#amt'); i.focus(); i.select(); };
+  const ai = $('#amt'); if (ai) ai.oninput = () => { S.amount = Math.round(Number(ai.value)) || 0; const b = $('#payOnline');
+    if (b) b.firstChild.textContent = t('payOnline',{a:money(S.amount)}); };
+  const po = $('#payOnline'); if (po) po.onclick = payOnline;
+  const pu = $('#payUpi'); if (pu) pu.onclick = () => { const v = curAmount(); if (!validAmt(v)) return toast(t('badAmt')); S.amount = v; S.view = 'upi'; render(); window.scrollTo(0,0); };
+}
+
+// ---------- online (Razorpay Checkout, money goes to the owner's account) ----------
+function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+async function payOnline(){
+  const v = curAmount(); if (!validAmt(v)) return toast(t('badAmt'));
+  S.amount = v;
+  const btn = $('#payOnline'); btn.disabled = true;
+  try {
+    const [o] = await Promise.all([ fn({ action:'portal_order', amount:v }), window.Razorpay ? null : loadScript('https://checkout.razorpay.com/v1/checkout.js') ]);
+    if (!o.ok) { btn.disabled = false; return toast(errMsg(o.data.error)); }
+    const rzp = new Razorpay({
+      key: o.data.key_id, order_id: o.data.order_id, amount: o.data.amount, currency: 'INR',
+      name: o.data.place, description: (lang()==='hi' ? 'किराया · ' : 'Rent · ') + o.data.name,
+      prefill: { name: o.data.name, contact: o.data.phone || '' }, theme: { color: '#0f6b5c' },
+      handler: async resp => {
+        const r = await fn({ action:'portal_verify', ...resp });
+        if (!r.ok) { toast(t('failed')); return reload(); }
+        S.receipt = { amount: r.data.amount, ref: r.data.payment, balance: r.data.balance, how: 'online' };
+        await reload(true); S.view = 'done'; render();
+      },
+      modal: { ondismiss: () => { btn.disabled = false; reload(); } }
+    });
+    rzp.on('payment.failed', () => { toast(t('failed')); });
+    rzp.open();
+  } catch (e) { btn.disabled = false; toast(t('netErr')); }
+}
+
+// ---------- UPI to the owner's UPI ID ----------
+function upiLink(){
+  const d = S.d, q = new URLSearchParams({ pa: d.upi, pn: (d.owner || d.place).slice(0, 40), am: String(S.amount), cu: 'INR', tn: ('Rent ' + d.name + (d.room ? ' ' + d.room : '')).slice(0, 50) });
+  return 'upi://pay?' + q.toString().replace(/\+/g, '%20');
+}
+function qrSvg(text){
+  if (!window.qrcode) return '';
+  const q = qrcode(0, 'M'); q.addData(text); q.make();
+  return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+}
+function renderUpi(){
+  const d = S.d, link = upiLink(), mobile = /android|iphone|ipad/i.test(navigator.userAgent);
+  $('#app').innerHTML = header() + `<div class="stack">
+    <div class="card stack">
+      <h2>${esc(t('upiTitle'))} · <span class="num">${money(S.amount)}</span></h2>
+      ${mobile ? `<a class="btn" href="${esc(link)}" id="openUpi">${esc(t('openApp'))}</a>` : ''}
+      <div class="sub" style="text-align:center">${esc(t('scan'))}</div>
+      <div class="qr" id="qr" aria-label="UPI QR code">${qrSvg(link)}</div>
+      <div class="sub" style="text-align:center">${esc(t('or'))}</div>
+      <div class="upiid"><span id="upiTxt">${esc(d.upi)}</span><button class="btn ghost" style="width:auto" id="copy">${esc(t('copy'))}</button></div>
+    </div>
+    <form class="card stack" id="claim">
+      <h3>${esc(t('afterPay'))}</h3>
+      <div><label for="utr">${esc(t('utr'))}</label><input id="utr" inputmode="numeric" autocomplete="off" maxlength="30" required>
+        <div class="sub" style="margin-top:4px">${esc(t('utrHelp'))}</div></div>
+      <button class="btn" id="claimBtn">${esc(t('iPaid',{a:money(S.amount)}))}</button>
+      <button class="btn ghost" type="button" id="back">${esc(t('back'))}</button>
+    </form></div>${footer()}`;
+  bind();
+  if (!window.qrcode) loadScript('https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js').then(() => { const q = $('#qr'); if (q) q.innerHTML = qrSvg(link); }).catch(() => {});
+  $('#copy').onclick = async () => { try { await navigator.clipboard.writeText(d.upi); toast(t('copied')); } catch(e) { const r = document.createRange(); r.selectNode($('#upiTxt')); getSelection().removeAllRanges(); getSelection().addRange(r); } };
+  $('#back').onclick = () => { S.view = 'home'; render(); };
+  $('#claim').onsubmit = async e => {
+    e.preventDefault(); const b = $('#claimBtn'); b.disabled = true;
+    const r = await fn({ action:'portal_claim', amount:S.amount, utr:$('#utr').value });
+    b.disabled = false;
+    if (!r.ok) return toast(errMsg(r.data.error));
+    toast(t('claimSent')); S.view = 'home'; await reload(true); render();
+  };
+}
+
+function renderDone(){
+  const r = S.receipt, d = S.d;
+  $('#app').innerHTML = header() + `<div class="card stack done">
+    <div class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2>${esc(t('paidOk'))}</h2><div class="due num good">${money(r.amount)}</div>
+    <div style="text-align:left">
+      <div class="kv"><span>${esc(t('paidTo'))}</span><span>${esc(d.place)}</span></div>
+      <div class="kv"><span>${esc(t('paidOn'))}</span><span>${esc(fdate(today()))}</span></div>
+      <div class="kv"><span>${esc(t('paidRef'))}</span><span class="num" style="word-break:break-all">${esc(r.ref)}</span></div>
+      <div class="kv"><span>${esc(r.balance < 0 ? t('advance') : t('newBal'))}</span><span class="num" style="font-weight:600">${money(r.balance)}</span></div>
+    </div>
+    <div class="sub">${esc(t('saveShot'))}</div>
+    <button class="btn" id="doneBtn">${esc(t('doneBtn'))}</button></div>${footer()}`;
+  bind();
+  $('#doneBtn').onclick = () => { S.view = 'home'; S.amount = null; S.editAmt = false; render(); };
+}
+
+async function reload(quiet){
+  try { S.d = await rpcPortal(); } catch (e) { if (!quiet) toast(t('netErr')); }
+  if (S.view === 'home') render();
+}
+(async () => {
+  if (!TOKEN || TOKEN.length < 24) { S.d = null; return render(); }
+  try { S.d = await rpcPortal(); } catch (e) { $('#app').innerHTML = header() + `<div class="notice">${esc(e.message === 'old' ? 'This payment page is not set up yet. Please ask the owner.' : t('netErr'))}</div>`; bind(); return; }
+  render();
+  // catch payments whose page was closed before we heard back
+  if (S.d && S.d.online) fn({ action:'portal_sync' }).then(r => { if (r.ok && r.data.found) reload(true); }).catch(() => {});
+})();
+</script>
+</body>
+</html>

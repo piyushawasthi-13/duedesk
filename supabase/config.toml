@@ -1,0 +1,5 @@
+# Used only if you deploy with the Supabase CLI:
+#   supabase functions deploy duedesk --project-ref zxdeuotgjvbpoeptldnv
+# The function checks logins itself, and the 9 AM job / Razorpay webhook send no Supabase JWT.
+[functions.duedesk]
+verify_jwt = false

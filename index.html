@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f6b5c">
+<meta name="description" content="DueDesk — rent and fee dashboard for PGs, libraries, gyms and tuition.">
+<title>DueDesk</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Hind:wght@400;500;600&display=swap">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --bg:#f1f4f1; --surface:#ffffff; --ink:#14201b; --muted:#5d6b64; --line:#dbe3dd; --grid:#e8eee9;
+  --accent:#0f6b5c; --accent-ink:#ffffff; --accent-soft:#dff0eb; --side:#0d2a23; --side-ink:#d5e6df; --side-muted:#8fb0a4; --side-active:#174a3e;
+  --good:#2f7d4f; --good-soft:#e1f1e7; --warn:#a96a10; --warn-soft:#f8ecd6; --bad:#b3382c; --bad-soft:#f7e0dd; --info:#2c5f9e; --info-soft:#e2ecf8;
+  --shadow:0 1px 2px rgba(20,32,27,.06),0 8px 24px rgba(20,32,27,.06);
+  --display:'Bricolage Grotesque','Hind',system-ui,sans-serif;
+  --body:'Hind','Noto Sans Devanagari',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1512; --surface:#16201b; --ink:#e6eee9; --muted:#97a69d; --line:#25332c; --grid:#1f2a24;
+  --accent:#4cc3a8; --accent-ink:#06231c; --accent-soft:#17342d; --side:#0a120f; --side-ink:#d5e6df; --side-muted:#7f978d; --side-active:#16302a;
+  --good:#6fcf97; --good-soft:#173324; --warn:#e3b05a; --warn-soft:#38290f; --bad:#f08a7e; --bad-soft:#3b1d19; --info:#8fb8ef; --info-soft:#1a2a40;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0e1512; --surface:#16201b; --ink:#e6eee9; --muted:#97a69d; --line:#25332c; --grid:#1f2a24;
+  --accent:#4cc3a8; --accent-ink:#06231c; --accent-soft:#17342d; --side:#0a120f; --side-ink:#d5e6df; --side-muted:#7f978d; --side-active:#16302a;
+  --good:#6fcf97; --good-soft:#173324; --warn:#e3b05a; --warn-soft:#38290f; --bad:#f08a7e; --bad-soft:#3b1d19; --info:#8fb8ef; --info-soft:#1a2a40;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;}
+
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--body);-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:26px} h2{font-size:20px} h3{font-size:17px}
+.sub{color:var(--muted);font-size:14px}
+.ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row{display:flex;align-items:center;gap:12px}
+.row.sb{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.stack{display:flex;flex-direction:column;gap:12px}
+
+/* ---------- layout: sidebar on desktop, bottom tabs on phone ---------- */
+.shell{min-height:100vh}
+.side{display:none}
+.main{padding:16px 16px calc(96px + env(safe-area-inset-bottom,0px));padding-top:calc(14px + env(safe-area-inset-top,0px));max-width:1180px;margin:0 auto}
+.mtop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.brand{font:700 22px var(--display);display:flex;align-items:center;gap:8px}
+.brand img{width:28px;height:28px;border-radius:8px}
+.mtop select{width:auto;max-width:55%;min-height:38px;padding:6px 10px;font-size:14px;font-weight:600}
+.phead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:4px 0 16px}
+.phead .sub{margin-top:2px}
+.phead .btn.desk{display:none}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+.tabs .in{display:flex;width:100%;max-width:560px}
+.tab{flex:1;border:0;background:none;padding:9px 4px;color:var(--muted);font-weight:600;font-size:12.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--accent)}
+.dot{position:absolute;top:6px;left:calc(50% + 8px);min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;line-height:18px;padding:0 5px}
+.fab{position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:4;box-shadow:var(--shadow);border-radius:99px;padding:12px 18px}
+@media (min-width:960px){
+  .shell{display:grid;grid-template-columns:236px 1fr}
+  .side{display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh;background:var(--side);color:var(--side-ink);padding:22px 14px}
+  .side .brand{color:#fff;padding:0 8px 14px}
+  .side select{background:var(--side-active);border-color:transparent;color:var(--side-ink);margin:0 0 12px;min-height:40px;font-weight:600}
+  .side .nav{border:0;background:none;color:var(--side-ink);text-align:left;padding:10px 12px;border-radius:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:10px;position:relative;font-size:15px}
+  .side .nav svg{width:20px;height:20px;opacity:.85}
+  .side .nav:hover{background:var(--side-active)}
+  .side .nav[aria-current="page"]{background:var(--side-active);color:#fff}
+  .side .nav .dot{position:static;margin-left:auto}
+  .side .foot{margin-top:auto;font-size:13px;color:var(--side-muted);padding:0 8px;word-break:break-all}
+  .main{padding:28px 32px 48px;width:100%}
+  .mtop,.tabs,.btn.fab{display:none}
+  .phead .btn.desk{display:inline-flex}
+}
+
+/* ---------- pieces ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card.flush{padding:6px 16px}
+.chead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi .lbl{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.kpi .val{font:700 26px/1.15 var(--display);margin-top:4px}
+.kpi .sm{font-size:13px;color:var(--muted);margin-top:2px}
+.kpi.hero{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.kpi.hero .lbl,.kpi.hero .sm{color:var(--accent-ink);opacity:.85}
+@media (min-width:760px){.kpis{grid-template-columns:repeat(4,1fr)} .kpi .val{font-size:30px}}
+.dgrid{display:grid;gap:16px;margin-top:16px}
+@media (min-width:1100px){.dgrid{grid-template-columns:1.25fr 1fr;align-items:start}}
+.item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.item:last-child{border-bottom:0}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:700 15px var(--display);flex:none}
+.avatar.off{background:var(--line);color:var(--muted)}
+.chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;vertical-align:middle}
+.chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.good{background:var(--good-soft);color:var(--good)} .chip.mute{background:var(--accent-soft);color:var(--accent)}
+.chip.off{background:var(--line);color:var(--muted)} .chip.info{background:var(--info-soft);color:var(--info)}
+.amt{font:700 16px var(--display);text-align:right;white-space:nowrap}
+.banner{border-radius:12px;padding:12px 14px;background:var(--warn-soft);color:var(--warn);font-weight:500;display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.banner.bad{background:var(--bad-soft);color:var(--bad)}
+.banner.info{background:var(--accent-soft);color:var(--accent)}
+.banner button{white-space:nowrap}
+.btn{border:0;border-radius:12px;padding:10px 16px;font-weight:600;background:var(--accent);color:var(--accent-ink);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;text-align:center}
+.btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.btn.soft{background:var(--accent-soft);color:var(--accent)}
+.btn.danger{background:var(--bad-soft);color:var(--bad)}
+.btn.sm{padding:6px 12px;min-height:36px;font-size:14px;border-radius:10px}
+.btn.xs{padding:2px 9px;min-height:30px;font-size:13px;border-radius:8px}
+.btn.block{width:100%}
+.btn svg{width:18px;height:18px;flex:none}
+.phead .btn{white-space:nowrap}
+.btn:disabled{opacity:.55}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.tab:focus-visible,.item:focus-visible,.nav:focus-visible,.col:focus-visible,tr:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:10px;width:36px;height:36px;display:inline-grid;place-items:center;cursor:pointer;color:var(--accent);flex:none}
+.iconbtn svg{width:18px;height:18px}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.empty{text-align:center;color:var(--muted);padding:24px 8px}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;width:max-content;max-width:min(90vw,480px);text-align:center;font-weight:500;box-shadow:var(--shadow)}
+@media (min-width:960px){#toasts{bottom:28px}}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);margin:0;font-size:16px;font-weight:500;color:var(--ink)}
+.switch:last-child{border-bottom:0}
+.switch input{width:22px;height:22px;min-height:0;accent-color:var(--accent);flex:none}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;border-radius:9px;padding:8px;font-weight:600;color:var(--muted);cursor:pointer;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.chips button{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 14px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;min-height:36px}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.toolbar input{max-width:360px}
+.ledger .line{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:15px}
+.ledger .line:last-child{border:0}
+.plan{border:1.5px solid var(--line);border-radius:14px;padding:14px}
+.plan.cur{border-color:var(--accent);background:var(--accent-soft)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:15px}
+.kv span:first-child{color:var(--muted)}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;word-break:break-all}
+ol.steps{margin:0;padding-left:20px;color:var(--muted);font-size:14px}
+ol.steps li{margin:2px 0}
+.setgrid{display:grid;gap:16px}
+@media (min-width:1100px){.setgrid{grid-template-columns:1fr 1fr;align-items:start}}
+
+/* live payment feed */
+.feed .item{cursor:default}
+.feed .item.fresh{animation:fresh 2.4s ease-out}
+@keyframes fresh{0%{background:var(--good-soft)}100%{background:transparent}}
+.livedot{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--good)}
+.livedot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--good)}
+.livedot.off{color:var(--muted)} .livedot.off::before{background:var(--muted)}
+
+/* claims */
+.claim{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.claim:last-child{border:0}
+.claim .acts{display:flex;gap:8px;margin-left:auto}
+
+/* chart (single series → no legend; title names it) */
+.chart{position:relative;padding:8px 0 0 44px;height:220px}
+.chart .yl{position:absolute;left:0;right:0;border-top:1px solid var(--grid);font-size:12px;color:var(--muted)}
+.chart .yl span{position:absolute;left:0;top:-9px;width:40px;text-align:right;padding-right:6px;background:var(--surface)}
+.chart .yl.zero{border-top-color:var(--line)}
+.chart .cols{position:absolute;left:44px;right:0;top:8px;bottom:26px;display:flex;align-items:flex-end;gap:2px}
+.chart .col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;cursor:default;position:relative;outline:none;border-radius:6px}
+.chart .col:hover,.chart .col:focus-visible{background:var(--accent-soft)}
+.chart .b{width:min(42px,60%);background:var(--accent);border-radius:4px 4px 0 0;min-height:0}
+.chart .col.past .b{opacity:.55}
+.chart .col .v{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px;white-space:nowrap}
+.chart .xl{position:absolute;left:44px;right:0;bottom:0;display:flex;gap:2px}
+.chart .xl span{flex:1;text-align:center;font-size:12px;color:var(--muted)}
+.tip{position:absolute;z-index:3;background:var(--ink);color:var(--bg);border-radius:8px;padding:6px 10px;font-size:13px;pointer-events:none;white-space:nowrap;transform:translate(-50%,-100%);margin-top:-8px}
+.tip b{font-weight:700}
+
+/* members table (desktop) */
+table.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:10px 10px;border-bottom:1px solid var(--line)}
+.tbl td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr{cursor:pointer}
+.tbl tbody tr:hover{background:var(--bg)}
+.tbl .r{text-align:right}
+.only-desk{display:none} .only-phone{display:block}
+@media (min-width:760px){.only-desk{display:block} .only-phone{display:none}}
+
+/* sheet / dialog */
+.scrim{position:fixed;inset:0;background:rgba(10,18,14,.5);z-index:10;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+@media (min-width:760px){.scrim{align-items:center}.sheet{border-radius:18px;max-height:88vh;padding:22px}}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}}
+.auth{max-width:420px;margin:8vh auto 0;padding:0 16px}
+.auth h1{font-size:34px;margin-bottom:6px}
+.err{color:var(--bad);font-weight:500;min-height:1.4em}
+.linkbtn{background:none;border:0;color:var(--accent);font-weight:600;padding:4px 0;cursor:pointer;text-decoration:underline}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="layer"></div>
+<script>
+const SUPABASE_URL = window.DUEDESK.SUPABASE_URL, SUPABASE_KEY = window.DUEDESK.SUPABASE_KEY;
+const FN_URL = SUPABASE_URL + '/functions/v1/duedesk';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const I18N = {
+ en:{
+  tagline:'Never forget who owes you rent',email:'Email',password:'Password (min 6)',login:'Log in',signup:'Create account',
+  noAcc:'New here? Create account',haveAcc:'Have an account? Log in',checkMail:'Account created. Check your email to confirm, then log in.',
+  forgot:'Forgot password?',resetSent:'Password reset link sent to your email.',newPassword:'New password',setPassword:'Set new password',enterEmail:'Enter your email first.',
+  home:'Home',tenants:'Members',reports:'Reports',settings:'Settings',toCollect:'To collect now',fromN:'from {n} members',collectedMonth:'Collected this month',advanceHeld:'Advance held',
+  needsAttention:'Collect now',allClear:'Nobody is pending. All clear.',upcomingWeek:'Coming up this week',paidUp:'Paid up',late:'Late {n} days',lateOne:'Late 1 day',dueToday:'Due today',
+  upcoming:'Due {d}',advance:'Advance {a}',leftChip:'Left',
+  addTenant:'Add member',editTenant:'Edit member',name:'Name',phone:'Phone',room:'Room / Seat',rent:'Rent per month (₹)',joinDate:'Joined on',dueDay:'Due day of month (1-31)',deposit:'Security deposit (₹)',
+  memberAlerts:'Include in daily alert',joinWarn:'Changing the join date recalculates all rent for this member.',
+  save:'Save',cancel:'Cancel',close:'Close',firstCharge:'First charge: {a} for {n} days, then {r} every month on day {d}',addPayment:'Add payment',amount:'Amount (₹)',mode:'Mode',paidOn:'Paid on',note:'Note',
+  cash:'Cash',upi:'UPI',bank:'Bank',other:'Other',fromDeposit:'From deposit',call:'Call',sms:'SMS',whatsapp:'WhatsApp',sure:'Tap again to confirm',
+  pending:'Pending',history:'History',noHistory:'No entries yet.',charge:'Rent',paid:'Paid',search:'Search by name, room or phone',
+  all:'All',due:'Due',advanceF:'Advance',leftF:'Left',allPlaces:'All places',
+  trialLeft:'{n} days of free trial left',trialEnded:'Your free trial has ended. Subscribe to keep adding payments.',expiredMsg:'Subscription expired. Upgrade to continue.',
+  pastDue:'Payment for your plan failed. Please update it to avoid interruption.',plan:'Plan',upgrade:'Upgrade',choosePlan:'Choose a plan',monthly:'Monthly',yearly:'Yearly (2 months free)',
+  subscribe:'Subscribe',currentPlan:'Current plan',renewsOn:'Renews on {d}',endsOn:'Access till {d}',
+  payNotReady:'Online payment is not switched on yet. Your trial keeps working — we will tell you when it is ready.',payDone:'Payment successful. Your plan is active.',payFailed:'Payment did not complete.',
+  membersUsed:'{a} of {b} members used',unlimited:'unlimited',perMonth:'/month',perYear:'/year',members:'members',properties:'places',
+  language:'Language',alerts:'Phone alerts',alertsHelp:'Every morning at 9 AM you get one alert: whom to collect from today.',enableAlerts:'Turn on phone alerts',
+  testAlert:'Send test alert',alertsOnDevice:'Alerts are on for this phone',alertsBlocked:'Notifications are blocked for this site. Allow them in Chrome → Site settings → Notifications.',
+  alertsIOS:'On iPhone, first tap Share → Add to Home Screen, then open DueDesk from the home screen.',alertsUnsupported:'This browser cannot show alerts. Use Chrome on Android.',
+  alertsNotReady:'Alerts server is not set up yet (deploy the duedesk function).',testSent:'Test alert sent. It should arrive in a few seconds.',noPhones:'No phone registered for alerts yet.',
+  dailyAlert:'Daily 9 AM alert',smsAlerts:'SMS reminder buttons',waAlerts:'WhatsApp reminder buttons',logout:'Log out',
+  yourName:'Your name',upiId:'Your UPI ID (shown in reminders)',profile:'Profile',property:'Place name',category:'Category',pg:'PG / Hostel',library:'Library',gym:'Gym',tuition:'Tuition',
+  myPlaces:'My places',addPlace:'Add place',setupTitle:'Set up your place',setupSub:'You can change this later.',
+  attention:'{n} to collect today',limitReached:'Member limit reached for your plan. Upgrade to add more.',propLimit:'Your plan allows only this many places. Upgrade for more.',
+  depositExceeded:'That is more than the deposit left.',saved:'Saved',loading:'Loading…',deleted:'Deleted',
+  reminder:'Hi {name}, your {prop} dues of {amt} are pending since {date}. Please pay soon. Thank you.',
+  reminderToday:'Hi {name}, your {prop} dues of {amt} are due today. Please pay today. Thank you.',
+  upiLine:'Pay by UPI to: {u}',
+  deleteQ:'Delete',balance:'Balance',dueOn:'Due day {d}',joined:'Joined {d}',lastDay:'Last day {d}',
+  more:'More',extraCharge:'Add extra charge',extraHelp:'Electricity, food, late fee, damage…',waiver:'Give discount',waiverHelp:'Reduce what this member owes',label:'For what',date:'Date',
+  changeRent:'Change rent',newRent:'New rent per month (₹)',applyFrom:'Apply from',thisCycle:'This cycle ({d})',nextCycle:'Next cycle ({d})',
+  edit:'Edit details',moveOut:'Move out',lastDayQ:'Last day of stay',moveOutHelp:'Rent for the last month is charged only up to this day.',
+  rejoin:'Rejoin (mark active)',settle:'Settle from deposit',depositHeld:'Deposit held',depositLeft:'Deposit left',refundDue:'Refund to member',
+  statement:'Share statement',statementHead:'{name} — {prop}',statementBal:'Balance: {a}',statementAdv:'Advance: {a}',
+  extra:'Extra',discount:'Discount',paidVia:'Paid · {m}',
+  month:'Month',collected:'Collected',byMode:'By mode',byPlace:'By place',paymentsN:'Payments: {n}',noMembers:'No members here yet. Tap “+ Add member”.',dueList:'Dues now',dlPayments:'Download payments (CSV)',dlDues:'Download dues (CSV)',
+  noPayments:'No payments this month.',pickPlace:'Place',nextDue:'Next {d}',iosHint:'Tip: Share → Add to Home Screen to use DueDesk like an app.',
+  installApp:'Install app',offline:'You are offline. Showing last saved data.'
+ },
+ hi:{
+  tagline:'किराया किससे लेना है, अब कभी नहीं भूलेंगे',email:'ईमेल',password:'पासवर्ड (कम से कम 6)',login:'लॉग इन',signup:'खाता बनाएं',
+  noAcc:'नए हैं? खाता बनाएं',haveAcc:'खाता है? लॉग इन करें',checkMail:'खाता बन गया। ईमेल में कन्फर्म करें, फिर लॉग इन करें।',
+  forgot:'पासवर्ड भूल गए?',resetSent:'पासवर्ड बदलने का लिंक ईमेल पर भेज दिया।',newPassword:'नया पासवर्ड',setPassword:'नया पासवर्ड सेट करें',enterEmail:'पहले अपना ईमेल लिखें।',
+  home:'होम',tenants:'सदस्य',reports:'रिपोर्ट',settings:'सेटिंग',toCollect:'अभी वसूलना है',fromN:'{n} सदस्यों से',collectedMonth:'इस महीने मिला',advanceHeld:'एडवांस जमा',
+  needsAttention:'अभी लेना है',allClear:'किसी का बकाया नहीं है।',upcomingWeek:'इस हफ्ते आने वाले',paidUp:'चुका दिया',late:'{n} दिन लेट',lateOne:'1 दिन लेट',dueToday:'आज देय',
+  upcoming:'{d} को देय',advance:'एडवांस {a}',leftChip:'छोड़ दिया',
+  addTenant:'सदस्य जोड़ें',editTenant:'सदस्य बदलें',name:'नाम',phone:'फोन',room:'कमरा / सीट',rent:'महीने का किराया (₹)',joinDate:'आने की तारीख',dueDay:'महीने की देय तारीख (1-31)',deposit:'सिक्योरिटी डिपॉज़िट (₹)',
+  memberAlerts:'रोज़ के अलर्ट में शामिल करें',joinWarn:'आने की तारीख बदलने से इस सदस्य का पूरा किराया दोबारा गिना जाएगा।',
+  save:'सेव करें',cancel:'रद्द करें',close:'बंद करें',firstCharge:'पहला चार्ज: {n} दिन का {a}, फिर हर महीने {d} तारीख को {r}',addPayment:'पेमेंट जोड़ें',amount:'रकम (₹)',mode:'तरीका',paidOn:'कब दिया',note:'नोट',
+  cash:'कैश',upi:'UPI',bank:'बैंक',other:'अन्य',fromDeposit:'डिपॉज़िट से',call:'कॉल',sms:'SMS',whatsapp:'व्हाट्सएप',sure:'पक्का करने के लिए दोबारा दबाएं',
+  pending:'बाकी',history:'हिसाब',noHistory:'अभी कोई एंट्री नहीं।',charge:'किराया',paid:'दिया',search:'नाम, कमरा या फोन से खोजें',
+  all:'सब',due:'बाकी',advanceF:'एडवांस',leftF:'छोड़ चुके',allPlaces:'सभी जगह',
+  trialLeft:'फ्री ट्रायल के {n} दिन बाकी',trialEnded:'फ्री ट्रायल खत्म हो गया। पेमेंट जोड़ते रहने के लिए सब्सक्राइब करें।',expiredMsg:'सब्सक्रिप्शन खत्म हो गया। आगे चलाने के लिए अपग्रेड करें।',
+  pastDue:'आपके प्लान का पेमेंट नहीं हुआ। रुकावट से बचने के लिए पेमेंट अपडेट करें।',plan:'प्लान',upgrade:'अपग्रेड',choosePlan:'प्लान चुनें',monthly:'महीने का',yearly:'साल का (2 महीने फ्री)',
+  subscribe:'सब्सक्राइब करें',currentPlan:'मौजूदा प्लान',renewsOn:'{d} को रिन्यू',endsOn:'{d} तक चालू',
+  payNotReady:'ऑनलाइन पेमेंट अभी चालू नहीं है। आपका ट्रायल चलता रहेगा — तैयार होने पर बताएंगे।',payDone:'पेमेंट हो गया। आपका प्लान चालू है।',payFailed:'पेमेंट पूरा नहीं हुआ।',
+  membersUsed:'{b} में से {a} सदस्य',unlimited:'असीमित',perMonth:'/महीना',perYear:'/साल',members:'सदस्य',properties:'जगह',
+  language:'भाषा',alerts:'फोन अलर्ट',alertsHelp:'हर सुबह 9 बजे एक अलर्ट आएगा: आज किससे पैसे लेने हैं।',enableAlerts:'फोन अलर्ट चालू करें',
+  testAlert:'टेस्ट अलर्ट भेजें',alertsOnDevice:'इस फोन पर अलर्ट चालू हैं',alertsBlocked:'इस साइट के नोटिफिकेशन बंद हैं। Chrome → Site settings → Notifications में चालू करें।',
+  alertsIOS:'iPhone पर पहले Share → Add to Home Screen करें, फिर होम स्क्रीन से DueDesk खोलें।',alertsUnsupported:'यह ब्राउज़र अलर्ट नहीं दिखा सकता। Android पर Chrome इस्तेमाल करें।',
+  alertsNotReady:'अलर्ट सर्वर अभी सेट नहीं है (duedesk function डिप्लॉय करें)।',testSent:'टेस्ट अलर्ट भेजा। कुछ सेकंड में आएगा।',noPhones:'अभी कोई फोन अलर्ट के लिए जुड़ा नहीं है।',
+  dailyAlert:'रोज़ सुबह 9 बजे अलर्ट',smsAlerts:'SMS रिमाइंडर बटन',waAlerts:'व्हाट्सएप रिमाइंडर बटन',logout:'लॉग आउट',
+  yourName:'आपका नाम',upiId:'आपकी UPI ID (रिमाइंडर में दिखेगी)',profile:'प्रोफ़ाइल',property:'जगह का नाम',category:'कैटेगरी',pg:'पीजी / हॉस्टल',library:'लाइब्रेरी',gym:'जिम',tuition:'ट्यूशन',
+  myPlaces:'मेरी जगहें',addPlace:'जगह जोड़ें',setupTitle:'अपनी जगह जोड़ें',setupSub:'बाद में बदल सकते हैं।',
+  attention:'आज {n} से पैसे लेने हैं',limitReached:'आपके प्लान की सदस्य सीमा पूरी हो गई। और जोड़ने के लिए अपग्रेड करें।',propLimit:'आपके प्लान में इतनी ही जगहें हैं। ज़्यादा के लिए अपग्रेड करें।',
+  depositExceeded:'यह बचे हुए डिपॉज़िट से ज़्यादा है।',saved:'सेव हो गया',loading:'लोड हो रहा है…',deleted:'हटा दिया',
+  reminder:'नमस्ते {name}, आपका {prop} का {amt} बकाया {date} से बाकी है। कृपया जल्दी भुगतान करें। धन्यवाद।',
+  reminderToday:'नमस्ते {name}, आपका {prop} का {amt} आज देय है। कृपया आज भुगतान करें। धन्यवाद।',
+  upiLine:'UPI से भुगतान करें: {u}',
+  deleteQ:'हटाएं',balance:'बैलेंस',dueOn:'देय तारीख {d}',joined:'आए {d}',lastDay:'आखिरी दिन {d}',
+  more:'और',extraCharge:'अलग चार्ज जोड़ें',extraHelp:'बिजली, खाना, लेट फीस, नुकसान…',waiver:'छूट दें',waiverHelp:'इस सदस्य का बकाया कम करें',label:'किस लिए',date:'तारीख',
+  changeRent:'किराया बदलें',newRent:'नया महीने का किराया (₹)',applyFrom:'कब से लागू',thisCycle:'इस साइकिल से ({d})',nextCycle:'अगली साइकिल से ({d})',
+  edit:'जानकारी बदलें',moveOut:'कमरा छोड़ा',lastDayQ:'रहने का आखिरी दिन',moveOutHelp:'आखिरी महीने का किराया सिर्फ इस दिन तक लगेगा।',
+  rejoin:'फिर से जोड़ें',settle:'डिपॉज़िट से हिसाब करें',depositHeld:'डिपॉज़िट जमा',depositLeft:'बचा डिपॉज़िट',refundDue:'सदस्य को लौटाना है',
+  statement:'हिसाब भेजें',statementHead:'{name} — {prop}',statementBal:'बाकी: {a}',statementAdv:'एडवांस: {a}',
+  extra:'अलग चार्ज',discount:'छूट',paidVia:'दिया · {m}',
+  month:'महीना',collected:'मिला',byMode:'तरीके से',byPlace:'जगह के हिसाब से',paymentsN:'पेमेंट: {n}',noMembers:'अभी कोई सदस्य नहीं। “+ सदस्य जोड़ें” दबाएं।',dueList:'अभी का बकाया',dlPayments:'पेमेंट डाउनलोड करें (CSV)',dlDues:'बकाया डाउनलोड करें (CSV)',
+  noPayments:'इस महीने कोई पेमेंट नहीं।',pickPlace:'जगह',nextDue:'अगला {d}',iosHint:'टिप: Share → Add to Home Screen से DueDesk ऐप की तरह चलेगा।',
+  installApp:'ऐप इंस्टॉल करें',offline:'आप ऑफ़लाइन हैं। पिछला सेव डेटा दिख रहा है।'
+ }
+};
+Object.assign(I18N.en, {
+  dashboard:'Dashboard', payments:'Payments', fromN1:'from 1 member', fromPayments1:'1 payment', lateN1:'1 late', dlCsv:'Download CSV', starts:'Starts {d}', online:'Online', onlinePaid:'Paid online · {m}', activeMembers:'Active members', lateN:'{n} late',
+  collectedIn:'Collected · {m}', fromPayments:'{n} payments', waitingConfirm:'Waiting for your confirmation', confirm:'Confirm', reject:'Reject',
+  claimLine:'{a} by UPI · UTR {u}', recentPayments:'Recent payments', live:'Live', newBadge:'New', chartTitle:'Collected per month', chartSub:'Last 6 months · {p}',
+  sendLink:'Send pay link', copyLink:'Copy pay link', linkCopied:'Pay link copied', payLink:'Online pay link', payLinkHelp:'Members open this link to see their dues and pay you online or by UPI.',
+  resetLink:'Make new link', resetDone:'New link made. The old link no longer works.', payHere:'Pay here: {u}',
+  onlinePay:'Online payments', onlineHelp:'Members pay from their pay link. Money goes straight to your account and shows here instantly.',
+  rzpTitle:'Razorpay (UPI, cards, net banking — confirmed automatically)', keyId:'Key ID', keySecret:'Key secret', webhookSecret:'Webhook secret (optional)',
+  connect:'Connect', connectedTest:'Connected · test mode', connectedLive:'Connected · live', disconnect:'Disconnect', webhookUrl:'Webhook URL (optional, for extra reliability)',
+  rzpSteps:'Razorpay Dashboard → Account & Settings → API Keys → Generate key. Paste both here.', rzpHook:'In Razorpay → Webhooks, add this URL with event payment.captured and the same secret.',
+  badKeys:'Razorpay did not accept these keys. Copy them again.', gwError:'Could not reach Razorpay. Try again.', notDeployed:'Server function not deployed yet.',
+  upiTitle:'UPI to your own UPI ID (you confirm with the UTR)', upiHelp:'Members scan a QR to your UPI ID and send you the UTR. You confirm it here.',
+  nudgeOnline:'Let members pay you online from a link.', setUp:'Set up', paidToast:'{n} paid {a} online', claimToast:'{n} says {a} sent by UPI — please confirm',
+  confirmed:'Confirmed', rejected:'Rejected', online2:'Online', viewAll:'View all', noRecent:'No payments yet.', memberCol:'Member', rentCol:'Rent', statusCol:'Status', dueCol:'Due now', dateCol:'Date', modeCol:'Mode', refCol:'Reference', amountCol:'Amount',
+  placeCol:'Place', thisMonth:'This month', ago:'{t} ago', justNow:'just now', gotIt:'Got it', allMonths:'Month', lockedOnline:'Online payments cannot be deleted.',
+  greeting:'Hello{n}', todayIs:'{d}'
+});
+Object.assign(I18N.hi, {
+  dashboard:'डैशबोर्ड', payments:'पेमेंट', dlCsv:'CSV डाउनलोड', starts:'{d} से शुरू', online:'ऑनलाइन', onlinePaid:'ऑनलाइन मिला · {m}', activeMembers:'सक्रिय सदस्य', lateN:'{n} लेट',
+  collectedIn:'मिला · {m}', fromPayments:'{n} पेमेंट', waitingConfirm:'आपके कन्फर्म का इंतज़ार', confirm:'कन्फर्म', reject:'मना करें',
+  claimLine:'{a} UPI से · UTR {u}', recentPayments:'हाल के पेमेंट', live:'लाइव', newBadge:'नया', chartTitle:'हर महीने मिला', chartSub:'पिछले 6 महीने · {p}',
+  sendLink:'पेमेंट लिंक भेजें', copyLink:'पेमेंट लिंक कॉपी करें', linkCopied:'लिंक कॉपी हो गया', payLink:'ऑनलाइन पेमेंट लिंक', payLinkHelp:'सदस्य इस लिंक से अपना बकाया देखकर ऑनलाइन या UPI से पैसे दे सकते हैं।',
+  resetLink:'नया लिंक बनाएं', resetDone:'नया लिंक बन गया। पुराना लिंक अब नहीं चलेगा।', payHere:'यहां भुगतान करें: {u}',
+  onlinePay:'ऑनलाइन पेमेंट', onlineHelp:'सदस्य अपने लिंक से पैसे देते हैं। पैसा सीधे आपके खाते में जाता है और यहां तुरंत दिखता है।',
+  rzpTitle:'Razorpay (UPI, कार्ड, नेट बैंकिंग — अपने आप कन्फर्म)', keyId:'Key ID', keySecret:'Key secret', webhookSecret:'Webhook secret (ज़रूरी नहीं)',
+  connect:'जोड़ें', connectedTest:'जुड़ा है · टेस्ट मोड', connectedLive:'जुड़ा है · लाइव', disconnect:'हटाएं', webhookUrl:'Webhook URL (ज़रूरी नहीं, ज़्यादा भरोसे के लिए)',
+  rzpSteps:'Razorpay Dashboard → Account & Settings → API Keys → Generate key. दोनों यहां पेस्ट करें।', rzpHook:'Razorpay → Webhooks में यह URL, event payment.captured और वही secret डालें।',
+  badKeys:'Razorpay ने ये keys नहीं मानीं। दोबारा कॉपी करें।', gwError:'Razorpay से संपर्क नहीं हुआ। फिर कोशिश करें।', notDeployed:'सर्वर फ़ंक्शन अभी डिप्लॉय नहीं है।',
+  upiTitle:'आपकी अपनी UPI ID पर (UTR से आप कन्फर्म करें)', upiHelp:'सदस्य QR से आपकी UPI ID पर पैसे भेजकर UTR भेजते हैं। आप यहां कन्फर्म करते हैं।',
+  nudgeOnline:'सदस्यों को लिंक से ऑनलाइन पैसे देने दें।', setUp:'सेट करें', paidToast:'{n} ने {a} ऑनलाइन दिए', claimToast:'{n}: {a} UPI से भेजे — कन्फर्म करें',
+  confirmed:'कन्फर्म हो गया', rejected:'मना कर दिया', online2:'ऑनलाइन', viewAll:'सब देखें', noRecent:'अभी कोई पेमेंट नहीं।', memberCol:'सदस्य', rentCol:'किराया', statusCol:'स्थिति', dueCol:'अभी बाकी', dateCol:'तारीख', modeCol:'तरीका', refCol:'रेफ़रेंस', amountCol:'रकम',
+  placeCol:'जगह', thisMonth:'इस महीने', ago:'{t} पहले', justNow:'अभी', gotIt:'ठीक है', allMonths:'महीना', lockedOnline:'ऑनलाइन पेमेंट हटाए नहीं जा सकते।',
+  greeting:'नमस्ते{n}', todayIs:'{d}'
+});
+
+// ---------- helpers ----------
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const P = s => { const [y,m,d] = String(s).slice(0,10).split('-').map(Number); return new Date(y, m-1, d); };
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today = () => iso(new Date());
+const dayDiff = (a,b) => Math.round((P(b)-P(a))/864e5);
+const addDays = (s,n) => { const d=P(s); d.setDate(d.getDate()+n); return iso(d); };
+const nf = new Intl.NumberFormat('en-IN',{maximumFractionDigits:0});
+const money = n => '₹'+nf.format(Math.abs(Math.round(Number(n)||0)));
+const S = { session:null, owner:null, props:[], pid:'all', tenants:[], charges:[], payments:[], claims:[], plans:[], gw:{connected:false},
+            tab:'home', q:'', filter:'all', authMode:'login', authMsg:'', loaded:false, repMonth:today().slice(0,7), cycle:'monthly',
+            vapid:null, recovery:false, fresh:new Set(), live:false, synced:false };
+const store = { get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
+function lang(){ return (S.owner && S.owner.language) || store.get('dd_lang') || 'en'; }
+function t(k, v={}){ if(v.n===1 && (I18N[lang()][k+'1'] ?? I18N.en[k+'1'])) k=k+'1'; let s = (I18N[lang()][k] ?? I18N.en[k] ?? k); for(const x in v) s = s.replaceAll('{'+x+'}', v[x]); return s; }
+const loc = () => lang()==='hi'?'hi-IN':'en-IN';
+function fdate(s, yr){ return P(s).toLocaleDateString(loc(), yr?{day:'numeric',month:'short',year:'numeric'}:{day:'numeric',month:'short'}); }
+const mName = (ym, long) => P(ym+'-01').toLocaleDateString(loc(), long?{month:'long',year:'numeric'}:{month:'short'});
+function ago(ts){ const s=(Date.now()-new Date(ts).getTime())/1000; if(s<60) return t('justNow');
+  const rtf=new Intl.RelativeTimeFormat(loc(),{numeric:'auto'}); if(s<3600) return rtf.format(-Math.round(s/60),'minute'); if(s<86400) return rtf.format(-Math.round(s/3600),'hour'); return fdate(new Date(ts).toISOString()); }
+function toast(msg){ let box=$('#toasts'); if(!box){ box=document.createElement('div'); box.id='toasts'; box.setAttribute('aria-live','polite'); document.body.appendChild(box); }
+  const e=document.createElement('div'); e.className='toast'; e.setAttribute('role','status'); e.textContent=msg; box.appendChild(e); while(box.children.length>3) box.firstChild.remove(); setTimeout(()=>e.remove(),4000); }
+function errText(e){ const m=(e&&e.message)||String(e||'');
+  if(m.includes('PLAN_LIMIT_REACHED')) return t('limitReached');
+  if(m.includes('PROPERTY_LIMIT_REACHED')) return t('propLimit');
+  if(m.includes('DEPOSIT_EXCEEDED')) return t('depositExceeded');
+  if(m.includes('ONLINE_LOCKED')) return t('lockedOnline');
+  if(m.includes('SUBSCRIPTION_EXPIRED')||m.includes('row-level security')) return t('expiredMsg');
+  return m; }
+function cleanPhone(p){ let d=String(p||'').replace(/\D/g,''); if(d.length===11&&d[0]==='0') d=d.slice(1); if(d.length===10) d='91'+d; return d; }
+function anchor(y,m,dd){ const last=new Date(y,m+1,0).getDate(); return new Date(y,m,Math.min(dd,last)); }
+function cycleStart(s,dd){ const d=P(s); let a=anchor(d.getFullYear(),d.getMonth(),dd); if(a>d) a=anchor(d.getFullYear(),d.getMonth()-1,dd); return iso(a); }
+function nextAnchor(s,dd){ const d=P(s); return iso(anchor(d.getFullYear(),d.getMonth()+1,dd)); }
+const payUrl = x => new URL('pay.html?t='+encodeURIComponent(x.pay_token), location.href).href;
+const modeLabel = m => m==='deposit'?t('fromDeposit'):m==='online'?t('online2'):t(m);
+const modeChip = p => p.source==='online' ? `<span class="chip good">${esc(t('online2'))}</span>` : p.source==='upi' ? `<span class="chip info">UPI ✓</span>` : `<span class="chip off">${esc(modeLabel(p.mode))}</span>`;
+
+// ---------- data ----------
+async function fetchAll(make){
+  let out=[], from=0;
+  for(;;){ const r=await make().range(from, from+999); if(r.error) throw r.error; out=out.concat(r.data||[]); if(!r.data||r.data.length<1000) break; from+=1000; }
+  return out;
+}
+async function loadAll(){
+  const uid=S.session.user.id;
+  const [o,p,pl,gw]=await Promise.all([
+    sb.from('owners').select('*').eq('id',uid).maybeSingle(),
+    sb.from('properties').select('*').order('created_at'),
+    sb.from('plans').select('*').order('price_monthly'),
+    sb.rpc('my_gateway')]);
+  for(const r of [o,p,pl]) if(r.error) throw r.error;
+  const [tb,tk,ch,pay,cl]=await Promise.all([
+    fetchAll(()=>sb.from('tenant_balances').select('*').order('name')),
+    fetchAll(()=>sb.from('tenants').select('id,pay_token')),
+    fetchAll(()=>sb.from('charges').select('id,tenant_id,kind,period_start,period_end,due_date,days_charged,amount,label').order('due_date')),
+    fetchAll(()=>sb.from('payments').select('id,tenant_id,amount,paid_on,mode,source,ref,note,created_at').order('paid_on',{ascending:false}).order('created_at',{ascending:false})),
+    sb.from('payment_claims').select('*').eq('status','pending').order('created_at',{ascending:false}).then(r=>r.data||[])]);
+  const tok=Object.fromEntries(tk.map(x=>[x.id,x.pay_token]));
+  tb.forEach(x=>x.pay_token=tok[x.tenant_id]);
+  S.owner=o.data; S.props=p.data||[]; S.plans=pl.data||[]; S.gw=(gw&&gw.data)||{connected:false};
+  S.charges=ch; S.payments=pay; S.tenants=tb; S.claims=cl;
+  if(S.pid!=='all' && !S.props.some(x=>x.id===S.pid)) S.pid='all';
+  enrich(); S.loaded=true;
+  store.set('dd_cache_'+uid, JSON.stringify({o:S.owner,p:S.props,pl:S.plans,tb,ch,pay,cl,gw:S.gw}));
+}
+function loadCache(){
+  try{ const c=JSON.parse(store.get('dd_cache_'+S.session.user.id)||'null'); if(!c) return false;
+    S.owner=c.o; S.props=c.p; S.plans=c.pl; S.tenants=c.tb; S.charges=c.ch; S.payments=c.pay; S.claims=c.cl||[]; S.gw=c.gw||{connected:false}; enrich(); S.loaded=true; return true; }catch(e){ return false; }
+}
+function enrich(){
+  const td=today(), by={};
+  S.charges.forEach(c=>(by[c.tenant_id]??={ch:[],pay:[]}).ch.push(c));
+  S.payments.forEach(p=>(by[p.tenant_id]??={ch:[],pay:[]}).pay.push(p));
+  S.tenants.forEach(x=>{
+    const g=by[x.tenant_id]||{ch:[],pay:[]}; x.ledger=g;
+    x.bal=Number(x.balance); x.dueNow=Number(x.due_now);
+    x.depLeft=Number(x.security_deposit)-Number(x.deposit_used);
+    let credit=g.pay.reduce((s,p)=>s+Number(p.amount),0) - g.ch.filter(c=>Number(c.amount)<0).reduce((s,c)=>s+Number(c.amount),0);
+    let oldest=null;
+    for(const c of g.ch){ const a=Number(c.amount); if(a<0) continue; if(credit>=a) credit-=a; else { oldest=c.due_date; break; } }
+    x.oldest=oldest; x.late=oldest?dayDiff(oldest,td):null;
+    if(x.dueNow>0) x.status = x.late>0 ? 'late' : 'today';
+    else if(x.bal>0) x.status='soon';
+    else if(x.bal<0) x.status='advance';
+    else x.status='paid';
+    x.next = x.is_active ? (cycleStart(td,x.due_day)===td ? td : nextAnchor(cycleStart(td,x.due_day),x.due_day)) : null;
+    if(x.is_active && x.join_date>td) x.next=x.join_date;
+    if(x.next && x.left_date && x.next>x.left_date) x.next=null;
+    x.prop=S.props.find(p=>p.id===x.property_id);
+    x.lastPay=g.pay[0]||null;
+  });
+  const rank={late:0,today:1,soon:2,advance:3,paid:4};
+  S.tenants.sort((a,b)=>(b.is_active-a.is_active) || rank[a.status]-rank[b.status] || (b.late||0)-(a.late||0) || a.name.localeCompare(b.name));
+}
+const visible = () => S.tenants.filter(x=>S.pid==='all'||x.property_id===S.pid);
+const byTenant = () => Object.fromEntries(S.tenants.map(x=>[x.tenant_id,x]));
+function visiblePayments(){ const ids=new Set(visible().map(x=>x.tenant_id)); return S.payments.filter(p=>ids.has(p.tenant_id)); }
+function access(){
+  const o=S.owner; if(!o) return {ok:false,days:0};
+  const now=Date.now(), grace=3*864e5, ends=o.plan_ends_at?new Date(o.plan_ends_at).getTime():null;
+  if(o.plan_status==='trialing'){ const d=Math.ceil((new Date(o.trial_ends_at)-now)/864e5); return {ok:d>0,days:Math.max(d,0),trial:true}; }
+  if(o.plan_status==='active') return {ok:!ends||ends>now-grace,ends};
+  if(o.plan_status==='past_due'||o.plan_status==='cancelled') return {ok:!!ends&&ends>now-grace,ends,warn:o.plan_status==='past_due'};
+  return {ok:false};
+}
+function planInfo(){ return S.plans.find(p=>p.id===(S.owner&&S.owner.plan_id))||{name:'—',max_tenants:0,max_properties:1}; }
+function propName(x){ return (x&&x.prop&&x.prop.name) || (S.props[0]&&S.props[0].name) || 'DueDesk'; }
+
+// ---------- auth ----------
+function renderAuth(){
+  const signup=S.authMode==='signup';
+  $('#layer').innerHTML='';
+  $('#app').innerHTML=`<div class="auth stack">
+    <div class="brand"><img src="icon.svg" alt="">DueDesk</div>
+    <div><h1>${esc(signup?t('signup'):t('login'))}</h1><p class="sub" style="margin:0">${esc(t('tagline'))}</p></div>
+    <div class="seg" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="${lang()==='en'}">English</button><button type="button" data-lang="hi" aria-pressed="${lang()==='hi'}">हिंदी</button></div>
+    <form id="authForm" class="stack card">
+      <div><label for="em">${esc(t('email'))}</label><input id="em" type="email" autocomplete="email" required value="${esc(S.authEmail||'')}"></div>
+      <div><label for="pw">${esc(t('password'))}</label><input id="pw" type="password" minlength="6" autocomplete="${signup?'new-password':'current-password'}" required></div>
+      <div class="err" id="authErr" role="alert">${esc(S.authMsg)}</div>
+      <button class="btn block" id="authGo">${esc(signup?t('signup'):t('login'))}</button>
+      <button class="btn ghost block" type="button" id="authSwap">${esc(signup?t('haveAcc'):t('noAcc'))}</button>
+      ${signup?'':`<button class="linkbtn" type="button" id="forgot">${esc(t('forgot'))}</button>`}
+    </form></div>`;
+  $('#authSwap').onclick=()=>{S.authMode=signup?'login':'signup';S.authMsg='';renderAuth();};
+  $$('[data-lang]').forEach(b=>b.onclick=()=>{store.set('dd_lang',b.dataset.lang);S.authEmail=$('#em').value;renderAuth();});
+  const fg=$('#forgot'); if(fg) fg.onclick=async()=>{ const em=$('#em').value.trim(); if(!em){ $('#authErr').textContent=t('enterEmail'); return; }
+    const r=await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});
+    $('#authErr').textContent = r.error ? r.error.message : t('resetSent'); };
+  $('#authForm').onsubmit=async e=>{
+    e.preventDefault(); const em=$('#em').value.trim(), pw=$('#pw').value; $('#authGo').disabled=true; S.authEmail=em;
+    const r = signup ? await sb.auth.signUp({email:em,password:pw}) : await sb.auth.signInWithPassword({email:em,password:pw});
+    if($('#authGo')) $('#authGo').disabled=false;
+    if(r.error){ S.authMsg=r.error.message; if($('#authErr')) $('#authErr').textContent=S.authMsg; return; }
+    if(signup && !r.data.session){ S.authMode='login'; S.authMsg=t('checkMail'); renderAuth(); }
+  };
+}
+function openRecovery(){
+  sheet(`<form id="rcForm" class="stack"><h2>${esc(t('setPassword'))}</h2>
+    <div><label for="np">${esc(t('newPassword'))}</label><input id="np" type="password" minlength="6" autocomplete="new-password" required></div>
+    <button class="btn block">${esc(t('save'))}</button></form>`);
+  $('#rcForm').onsubmit=async e=>{ e.preventDefault(); const r=await sb.auth.updateUser({password:$('#np').value});
+    if(r.error) return toast(r.error.message); S.recovery=false; closeSheet(); toast(t('saved')); };
+}
+
+// ---------- shell ----------
+const ic = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICON={
+ home:ic('<rect x="3" y="3" width="7.5" height="9" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="5" rx="1.5"/><rect x="13.5" y="11" width="7.5" height="10" rx="1.5"/><rect x="3" y="15" width="7.5" height="6" rx="1.5"/>'),
+ list:ic('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.8a3.4 3.4 0 010 6.4M18 14.8c1.8.7 3 2.3 3.5 5.2"/>'),
+ pay:ic('<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/>'),
+ settings:ic('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>'),
+ send:ic('<path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4 18-7z"/>'),
+ link:ic('<path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"/>'),
+ plus:ic('<path d="M12 5v14M5 12h14"/>')
+};
+const TABS=[['home','dashboard'],['list','tenants'],['pay','payments'],['settings','settings']];
+function render(){
+  document.documentElement.lang = lang()==='hi'?'hi':'en';
+  if(!S.session) return renderAuth();
+  if(!S.loaded){ $('#app').innerHTML=`<p class="empty">${esc(t('loading'))}</p>`; return; }
+  if(S.dbOld){ $('#layer').innerHTML=''; $('#app').innerHTML=`<div class="auth stack" style="max-width:640px">
+    <div class="brand"><img src="icon.svg" alt="">DueDesk</div>
+    <div class="card stack"><h2>Database update needed</h2>
+    <p style="margin:0">This version of DueDesk needs the new database tables. It's a one-time step for whoever manages the Supabase project:</p>
+    <ol class="steps" style="color:var(--ink);font-size:15px"><li>Supabase → <b>Database → Extensions</b>: enable <b>pg_cron</b> and <b>pg_net</b>.</li>
+    <li>Supabase → <b>SQL Editor</b> → New query → paste all of <b>supabase/schema.sql</b> → <b>Run</b>.</li>
+    <li>The last row should say <b>v3 ready</b>. Then reload this page.</li></ol>
+    <div class="sub">Details: <span class="code" style="display:inline-block">${esc(S.dbOld)}</span></div>
+    <div class="row"><button class="btn" onclick="location.reload()">Reload</button><button class="btn ghost" id="lo2">Log out</button></div></div></div>`;
+    $('#lo2').onclick=()=>sb.auth.signOut(); return; }
+  if(!S.props.length) return renderSetup();
+  const views={home:viewHome,list:viewList,pay:viewPayments,settings:viewSettings};
+  const placeSel = S.props.length>1 ? `<select id="pid" aria-label="${esc(t('pickPlace'))}"><option value="all">${esc(t('allPlaces'))}</option>${S.props.map(p=>`<option value="${p.id}" ${S.pid===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select>` : '';
+  const badge = k => k==='home' && S.claims.length ? `<span class="dot">${S.claims.length}</span>` : '';
+  $('#app').innerHTML = `<div class="shell">
+    <aside class="side" aria-label="Main">
+      <div class="brand"><img src="icon.svg" alt="">DueDesk</div>${placeSel.replace('id="pid"','id="pidSide"')}
+      ${TABS.map(([k,l])=>`<button class="nav" data-tab="${k}" ${S.tab===k?'aria-current="page"':''}>${ICON[k]}<span>${esc(t(l))}</span>${badge(k)}</button>`).join('')}
+      <div class="foot">${esc(S.session.user.email||'')}</div>
+    </aside>
+    <main class="main">
+      <div class="mtop"><div class="brand"><img src="icon.svg" alt="">DueDesk</div>${placeSel}</div>
+      ${navigator.onLine===false?`<div class="banner">${esc(t('offline'))}</div>`:''}
+      ${views[S.tab]()}
+    </main></div>
+    <nav class="tabs" aria-label="Main"><div class="in">${TABS.map(([k,l])=>`<button class="tab" data-tab="${k}" ${S.tab===k?'aria-current="page"':''}>${ICON[k]}<span>${esc(t(l))}</span>${badge(k)}</button>`).join('')}</div></nav>`;
+  bindMain();
+}
+function phead(title, sub, action){
+  return `<div class="phead"><div><h1>${esc(title)}</h1>${sub?`<div class="sub">${sub}</div>`:''}</div>${action||''}</div>`;
+}
+const addBtn = () => `<button class="btn desk" data-act="addT">${ICON.plus} ${esc(t('addTenant'))}</button>`;
+const fab = () => `<button class="btn fab" data-act="addT">+ ${esc(t('addTenant'))}</button>`;
+function planBanner(){
+  const ac=access();
+  if(!ac.ok) return `<div class="banner bad"><span>${esc(S.owner.plan_status==='trialing'?t('trialEnded'):t('expiredMsg'))}</span><button class="btn sm" data-act="plans">${esc(t('upgrade'))}</button></div>`;
+  if(ac.warn) return `<div class="banner bad"><span>${esc(t('pastDue'))}</span><button class="btn sm" data-act="plans">${esc(t('plan'))}</button></div>`;
+  if(ac.trial && ac.days<=10) return `<div class="banner info"><span>${esc(t('trialLeft',{n:ac.days}))}</span><button class="btn sm soft" data-act="plans">${esc(t('plan'))}</button></div>`;
+  return '';
+}
+function alertNudge(){
+  if(!S.owner.notify_push || store.get('dd_push_on')==='1' || store.get('dd_nudge_off')==='1') return '';
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return '';
+  if(('Notification' in window) && Notification.permission==='denied') return '';
+  return `<div class="banner info"><span>${esc(t('alertsHelp'))}</span><button class="btn sm" data-act="push">${esc(t('enableAlerts'))}</button></div>`;
+}
+function onlineNudge(){
+  if(S.gw.connected || S.owner.upi_id || store.get('dd_online_nudge_off')==='1') return '';
+  return `<div class="banner info"><span>${esc(t('nudgeOnline'))}</span><button class="btn sm" data-tab="settings">${esc(t('setUp'))}</button></div>`;
+}
+
+// ---------- dashboard ----------
+function viewHome(){
+  const V=visible(), td=today(), ym=td.slice(0,7), pays=visiblePayments();
+  const hot=V.filter(x=>x.dueNow>0);
+  const toCollect=hot.reduce((s,x)=>s+x.dueNow,0);
+  const monthPays=pays.filter(p=>p.paid_on.slice(0,7)===ym && p.mode!=='deposit');
+  const got=monthPays.reduce((s,p)=>s+Number(p.amount),0);
+  const onl=monthPays.filter(p=>p.source!=='owner');
+  const onlSum=onl.reduce((s,p)=>s+Number(p.amount),0);
+  const active=V.filter(x=>x.is_active).length, late=V.filter(x=>x.status==='late').length;
+  const name = S.owner.full_name ? ', '+S.owner.full_name.split(' ')[0] : '';
+  const week=V.filter(x=>x.dueNow<=0 && x.next && x.next>td && dayDiff(td,x.next)<=7).sort((a,b)=>a.next<b.next?-1:1);
+  const ids=new Set(V.map(x=>x.tenant_id));
+  const claims=S.claims.filter(c=>ids.has(c.tenant_id));
+  return `${phead(t('greeting',{n:name}), esc(P(td).toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long'})), addBtn())}
+    ${planBanner()}${onlineNudge()}${alertNudge()}
+    <div class="kpis">
+      <div class="card kpi hero"><div class="lbl">${esc(t('toCollect'))}</div><div class="val num">${money(toCollect)}</div><div class="sm">${hot.length?esc(t('fromN',{n:hot.length})):esc(t('allClear'))}</div></div>
+      <div class="card kpi"><div class="lbl">${esc(t('collectedIn',{m:mName(ym)}))}</div><div class="val num">${money(got)}</div><div class="sm">${esc(t('fromPayments',{n:monthPays.length}))}</div></div>
+      <div class="card kpi"><div class="lbl">${esc(t('onlinePaid',{m:mName(ym)}))}</div><div class="val num">${money(onlSum)}</div><div class="sm">${esc(t('fromPayments',{n:onl.length}))}</div></div>
+      <div class="card kpi"><div class="lbl">${esc(t('activeMembers'))}</div><div class="val num">${active}</div><div class="sm">${late?`<span style="color:var(--bad);font-weight:600">${esc(t('lateN',{n:late}))}</span>`:'&nbsp;'}</div></div>
+    </div>
+    ${claims.length?`<div class="card" style="margin-top:16px;border-color:var(--info)"><div class="chead"><h3>${esc(t('waitingConfirm'))}</h3><span class="chip info">${claims.length}</span></div>${claims.map(claimRow).join('')}</div>`:''}
+    <div class="dgrid">
+      <div class="stack" style="gap:16px">
+        <div class="card"><div class="chead"><h3>${esc(t('needsAttention'))}</h3><span class="amt num">${money(toCollect)}</span></div>
+          ${hot.length?hot.map(x=>rowT(x,false,true)).join(''):`<div class="empty">${esc(t('allClear'))}</div>`}</div>
+        ${week.length?`<div class="card"><div class="chead"><h3>${esc(t('upcomingWeek'))}</h3></div>${week.map(x=>rowT(x,true)).join('')}</div>`:''}
+      </div>
+      <div class="stack" style="gap:16px">
+        <div class="card feed"><div class="chead"><h3>${esc(t('recentPayments'))}</h3><span class="livedot ${S.live?'':'off'}">${esc(t('live'))}</span></div>
+          ${pays.length?pays.slice(0,7).map(payRow).join('')+`<button class="linkbtn" data-tab="pay">${esc(t('viewAll'))} →</button>`:`<div class="empty">${esc(t('noRecent'))}</div>`}</div>
+        <div class="card"><div class="chead"><div><h3>${esc(t('chartTitle'))}</h3><div class="sub">${esc(t('chartSub',{p:S.pid==='all'?(S.props.length>1?t('allPlaces'):S.props[0].name):propName({prop:S.props.find(p=>p.id===S.pid)})}))}</div></div></div>
+          ${chart(pays)}</div>
+      </div>
+    </div>${fab()}`;
+}
+function claimRow(c){
+  const x=byTenant()[c.tenant_id]||{name:'?'};
+  return `<div class="claim"><div class="avatar">${esc((x.name||'?').charAt(0).toUpperCase())}</div>
+    <div class="grow" style="min-width:160px"><div style="font-weight:600" class="ell">${esc(x.name)}${x.room?` <span class="sub">· ${esc(x.room)}</span>`:''}</div>
+    <div class="sub">${esc(t('claimLine',{a:money(c.amount),u:c.utr}))} · ${esc(ago(c.created_at))}</div></div>
+    <div class="acts"><button class="btn sm" data-confirm="${c.id}">${esc(t('confirm'))}</button><button class="btn sm danger" data-reject="${c.id}">${esc(t('reject'))}</button></div></div>`;
+}
+function payRow(p){
+  const x=byTenant()[p.tenant_id]||{name:'?'};
+  const isNew=S.fresh.has(p.id);
+  return `<div class="item ${isNew?'fresh':''}" data-open="${p.tenant_id}" role="button" tabindex="0" style="cursor:pointer">
+    <div class="avatar">${esc((x.name||'?').charAt(0).toUpperCase())}</div>
+    <div class="grow"><div class="ell" style="font-weight:600">${esc(x.name)} ${isNew?`<span class="chip good">${esc(t('newBadge'))}</span>`:''}</div>
+    <div class="sub ell">${modeChip(p)} · ${esc(p.paid_on===today()?ago(p.created_at):fdate(p.paid_on))}</div></div>
+    <div class="amt num" style="color:var(--good)">+${money(p.amount)}</div></div>`;
+}
+function niceMax(v){ if(v<=0) return 1000; const e=Math.pow(10,Math.floor(Math.log10(v))); for(const m of [1,1.5,2,2.5,3,4,5,6,8,10]) if(m*e>=v) return m*e; return 10*e; }
+const short = n => n>=1e7?(n/1e7).toFixed(n%1e7?1:0)+'Cr':n>=1e5?(n/1e5).toFixed(n%1e5?1:0)+'L':n>=1e3?(n/1e3).toFixed(n%1e3?1:0)+'k':String(n);
+function chart(pays){
+  const d=new Date(), months=[];
+  for(let i=5;i>=0;i--) months.push(iso(new Date(d.getFullYear(),d.getMonth()-i,1)).slice(0,7));
+  const data=months.map(m=>{ const ps=pays.filter(p=>p.paid_on.slice(0,7)===m && p.mode!=='deposit'); return {m, v:ps.reduce((s,p)=>s+Number(p.amount),0), n:ps.length, o:ps.filter(p=>p.source!=='owner').reduce((s,p)=>s+Number(p.amount),0)}; });
+  const max=niceMax(Math.max(...data.map(x=>x.v)));
+  const lines=[0,.5,1].map(f=>`<div class="yl ${f===0?'zero':''}" style="bottom:${26+f*(220-8-26)}px"><span class="num">${f?'₹'+short(max*f):'0'}</span></div>`).join('');
+  const cur=months[5];
+  return `<div class="chart" id="chart" role="img" aria-label="${esc(data.map(x=>mName(x.m,true)+': '+money(x.v)).join('; '))}">${lines}
+    <div class="cols">${data.map((x,i)=>`<div class="col ${x.m===cur?'':'past'}" tabindex="0" data-i="${i}" aria-label="${esc(mName(x.m,true)+' '+money(x.v))}">
+      ${x.m===cur&&x.v?`<div class="v num">${money(x.v)}</div>`:''}<div class="b" style="height:${x.v?Math.max(2,x.v/max*100):0}%"></div></div>`).join('')}</div>
+    <div class="xl">${data.map(x=>`<span>${esc(mName(x.m))}</span>`).join('')}</div></div>
+    <script type="application/json" id="chartData">${JSON.stringify(data).replace(/</g,'\\u003c')}<\/script>`;
+}
+function bindChart(){
+  const c=$('#chart'); if(!c) return; const data=JSON.parse($('#chartData').textContent);
+  let tip=null;
+  const show=col=>{ hide(); const x=data[+col.dataset.i]; tip=document.createElement('div'); tip.className='tip';
+    tip.innerHTML=`<b>${esc(mName(x.m,true))}</b> · <span class="num">${money(x.v)}</span><br>${esc(t('fromPayments',{n:x.n}))} · ${esc(t('online2'))} ${money(x.o)}`;
+    c.appendChild(tip); const b=col.querySelector('.b'); const cr=c.getBoundingClientRect(), br=b.getBoundingClientRect(), colr=col.getBoundingClientRect();
+    let left=colr.left-cr.left+colr.width/2; const w=tip.offsetWidth; left=Math.max(w/2, Math.min(cr.width-w/2, left));
+    tip.style.left=left+'px'; tip.style.top=(Math.min(br.top, colr.bottom-4)-cr.top)+'px'; };
+  const hide=()=>{ if(tip){ tip.remove(); tip=null; } };
+  $$('.col',c).forEach(col=>{ col.onmouseenter=()=>show(col); col.onfocus=()=>show(col); col.onmouseleave=hide; col.onblur=hide; });
+}
+function statusChip(x){
+  if(!x.is_active) return `<span class="chip off">${esc(t('leftChip'))}</span>`;
+  if(x.join_date>today() && x.bal<=0) return `<span class="chip mute">${esc(t('starts',{d:fdate(x.join_date)}))}</span>`;
+  if(x.status==='late') return `<span class="chip bad">${esc(x.late===1?t('lateOne'):t('late',{n:x.late}))}</span>`;
+  if(x.status==='today') return `<span class="chip warn">${esc(t('dueToday'))}</span>`;
+  if(x.status==='soon') return `<span class="chip warn">${esc(t('upcoming',{d:fdate(x.oldest||x.next||today())}))}</span>`;
+  if(x.status==='advance') return `<span class="chip good">${esc(t('advance',{a:money(x.bal)}))}</span>`;
+  return `<span class="chip mute">${esc(t('paidUp'))}</span>`;
+}
+function rowT(x, upcoming, quick){
+  const right = upcoming ? `<span class="sub">${esc(fdate(x.next))}</span>` : (x.dueNow>0?money(x.dueNow):(x.bal>0?money(x.bal):''));
+  const chip = upcoming ? `<span class="chip mute">${esc(t('nextDue',{d:fdate(x.next)}))}</span>` : statusChip(x);
+  const where = [x.room, S.pid==='all'&&S.props.length>1&&x.prop?x.prop.name:null].filter(Boolean).map(esc).join(' · ');
+  const q = quick && x.phone && S.owner.notify_whatsapp ? `<a class="iconbtn" title="${esc(t('sendLink'))}" aria-label="${esc(t('sendLink'))}: ${esc(x.name)}" target="_blank" rel="noopener" href="${esc(waLink(x))}" data-stop>${ICON.send}</a>` : '';
+  return `<div class="item" data-open="${x.tenant_id}" role="button" tabindex="0">
+    <div class="avatar ${x.is_active?'':'off'}">${esc((x.name||'?').trim().charAt(0).toUpperCase())}</div>
+    <div class="grow"><div class="ell" style="font-weight:600">${esc(x.name)}</div><div class="sub ell">${where?where+' · ':''}${chip}</div></div>
+    <div class="amt num">${right}</div>${q}</div>`;
+}
+
+// ---------- members ----------
+function filtered(){
+  const q=S.q.toLowerCase().trim(), F=S.filter;
+  return visible().filter(x=>{
+    if(F==='due'&&!(x.dueNow>0)) return false;
+    if(F==='advance'&&!(x.bal<0)) return false;
+    if(F==='left'&&x.is_active) return false;
+    if(F==='all'&&!x.is_active&&x.bal===0) return false;
+    return !q||x.name.toLowerCase().includes(q)||(x.room||'').toLowerCase().includes(q)||(x.phone||'').includes(q);
+  });
+}
+function membersBody(){
+  const arr=filtered();
+  if(!arr.length) return `<div class="card empty">${esc(visible().length?t('noHistory'):t('noMembers'))}</div>`;
+  const multi=S.props.length>1&&S.pid==='all';
+  return `<div class="card flush only-phone">${arr.map(x=>rowT(x)).join('')}</div>
+    <div class="card only-desk" style="padding:4px 8px"><table class="tbl"><thead><tr><th>${esc(t('memberCol'))}</th>${multi?`<th>${esc(t('placeCol'))}</th>`:''}<th class="r">${esc(t('rentCol'))}</th><th>${esc(t('statusCol'))}</th><th class="r">${esc(t('dueCol'))}</th><th class="r"></th></tr></thead><tbody>
+    ${arr.map(x=>`<tr data-open="${x.tenant_id}" tabindex="0"><td><div class="row" style="gap:10px"><div class="avatar ${x.is_active?'':'off'}">${esc(x.name.charAt(0).toUpperCase())}</div><div><div style="font-weight:600">${esc(x.name)}</div><div class="sub">${esc([x.room,x.phone].filter(Boolean).join(' · '))}</div></div></div></td>
+      ${multi?`<td>${esc(propName(x))}</td>`:''}<td class="r num">${money(x.rent_amount)}</td><td>${statusChip(x)}</td>
+      <td class="r num" style="font-weight:700">${x.dueNow>0?money(x.dueNow):(x.bal<0?`<span style="color:var(--good)">+${money(x.bal)}</span>`:'—')}</td>
+      <td class="r"><div class="row" style="gap:6px;justify-content:flex-end">${x.phone&&S.owner.notify_whatsapp?`<a class="iconbtn" data-stop target="_blank" rel="noopener" href="${esc(waLink(x))}" title="${esc(t('sendLink'))}" aria-label="${esc(t('sendLink'))}">${ICON.send}</a>`:''}<button class="iconbtn" data-copy="${x.tenant_id}" title="${esc(t('copyLink'))}" aria-label="${esc(t('copyLink'))}">${ICON.link}</button></div></td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+function viewList(){
+  const fs=[['all','all'],['due','due'],['advance','advanceF'],['left','leftF']];
+  return `${phead(t('tenants'), esc(t('membersUsed',{a:S.tenants.filter(x=>x.is_active).length,b:planInfo().max_tenants>=999999?t('unlimited'):planInfo().max_tenants})), addBtn())}
+   <div class="toolbar"><input id="q" type="search" placeholder="${esc(t('search'))}" aria-label="${esc(t('search'))}" value="${esc(S.q)}">
+   <div class="chips" role="group">${fs.map(([k,l])=>`<button data-filter="${k}" aria-pressed="${S.filter===k}">${esc(t(l))}</button>`).join('')}</div></div>
+   <div id="mbody">${membersBody()}</div>${fab()}`;
+}
+
+// ---------- payments ----------
+function viewPayments(){
+  const m=S.repMonth, V=visible(), by=byTenant();
+  const pays=visiblePayments().filter(p=>p.paid_on.slice(0,7)===m);
+  const real=pays.filter(p=>p.mode!=='deposit');
+  const total=real.reduce((s,p)=>s+Number(p.amount),0), onl=real.filter(p=>p.source!=='owner').reduce((s,p)=>s+Number(p.amount),0);
+  const modes={}; pays.forEach(p=>{ const k=p.mode; modes[k]=(modes[k]||0)+Number(p.amount); });
+  const months=[]; { const d=new Date(); for(let i=0;i<12;i++) months.push(iso(new Date(d.getFullYear(),d.getMonth()-i,1)).slice(0,7)); }
+  const mx=Math.max(1,...Object.values(modes));
+  const dues=V.filter(x=>x.dueNow>0);
+  return `${phead(t('payments'), '', `<select id="rm" style="width:auto" aria-label="${esc(t('month'))}">${months.map(x=>`<option value="${x}" ${x===m?'selected':''}>${esc(mName(x,true))}</option>`).join('')}</select>`)}
+    <div class="kpis">
+      <div class="card kpi hero"><div class="lbl">${esc(t('collected'))}</div><div class="val num">${money(total)}</div><div class="sm">${esc(t('fromPayments',{n:real.length}))}</div></div>
+      <div class="card kpi"><div class="lbl">${esc(t('online2'))} + UPI</div><div class="val num">${money(onl)}</div><div class="sm">${total?Math.round(onl/total*100)+'%':'—'}</div></div>
+      <div class="card kpi"><div class="lbl">${esc(t('toCollect'))}</div><div class="val num">${money(dues.reduce((s,x)=>s+x.dueNow,0))}</div><div class="sm">${esc(t('fromN',{n:dues.length}))}</div></div>
+      <div class="card kpi"><div class="lbl">${esc(t('waitingConfirm'))}</div><div class="val num">${S.claims.length}</div><div class="sm">${money(S.claims.reduce((s,c)=>s+Number(c.amount),0))}</div></div>
+    </div>
+    <div class="dgrid">
+      <div class="card"><div class="chead"><h3>${esc(mName(m,true))}</h3><button class="btn sm soft" id="dlPay" ${pays.length?'':'disabled'} aria-label="${esc(t('dlPayments'))}">${esc(t('dlCsv'))}</button></div>
+        ${pays.length?`<div class="only-phone">${pays.map(payRow).join('')}</div>
+        <div class="only-desk"><table class="tbl"><thead><tr><th>${esc(t('dateCol'))}</th><th>${esc(t('memberCol'))}</th><th>${esc(t('modeCol'))}</th><th>${esc(t('refCol'))}</th><th class="r">${esc(t('amountCol'))}</th></tr></thead><tbody>
+        ${pays.map(p=>{const x=by[p.tenant_id]||{}; return `<tr data-open="${p.tenant_id}" tabindex="0"><td class="num">${esc(fdate(p.paid_on))}</td><td><b>${esc(x.name)}</b>${x.room?` <span class="sub">${esc(x.room)}</span>`:''}</td><td>${modeChip(p)}</td><td class="sub ell" style="max-width:180px">${esc(p.ref||p.note||'')}</td><td class="r num" style="font-weight:700">${money(p.amount)}</td></tr>`;}).join('')}
+        </tbody></table></div>`:`<div class="empty">${esc(t('noPayments'))}</div>`}</div>
+      <div class="stack" style="gap:16px">
+        <div class="card stack"><h3>${esc(t('byMode'))}</h3>${pays.length?Object.entries(modes).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div><div class="kv"><span>${esc(modeLabel(k))}</span><span class="num" style="font-weight:600">${money(v)}</span></div><div class="bar"><i style="width:${Math.round(v/mx*100)}%"></i></div></div>`).join(''):`<div class="sub">—</div>`}</div>
+        <div class="card"><div class="chead"><h3>${esc(t('dueList'))}</h3><button class="btn sm soft" id="dlDue" ${dues.length?'':'disabled'} aria-label="${esc(t('dlDues'))}">${esc(t('dlCsv'))}</button></div>
+          ${dues.length?dues.map(x=>rowT(x,false,true)).join(''):`<div class="empty">${esc(t('allClear'))}</div>`}</div>
+      </div></div>`;
+}
+function csv(rows){ return '\ufeff'+rows.map(r=>r.map(v=>{ const s=String(v??''); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(',')).join('\n'); }
+function download(name, text){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:'text/csv;charset=utf-8'})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
+
+// ---------- settings ----------
+function viewSettings(){
+  const o=S.owner, pl=planInfo(), ac=access(), cnt=S.tenants.filter(x=>x.is_active).length;
+  const lim=pl.max_tenants>=999999?t('unlimited'):pl.max_tenants;
+  const pushState = pushSupport();
+  const ends = o.plan_ends_at ? fdate(o.plan_ends_at.slice(0,10),true) : '';
+  const gw=S.gw;
+  const hookUrl = `${FN_URL}?owner-webhook=${S.session.user.id}`;
+  return `${phead(t('settings'),'')}<div class="setgrid">
+   <div class="stack" style="gap:16px">
+   <div class="card stack" id="onlineCard"><h3>${esc(t('onlinePay'))}</h3><p class="sub" style="margin:0">${esc(t('onlineHelp'))}</p>
+     <div style="font-weight:600">${esc(t('rzpTitle'))}</div>
+     ${gw.connected ? `<div class="row wrap"><span class="chip good">✓ ${esc(gw.live?t('connectedLive'):t('connectedTest'))}</span><span class="sub num">${esc(gw.key_id)}</span></div>
+        <div><label>${esc(t('webhookUrl'))}</label><div class="code">${esc(hookUrl)}</div><div class="sub" style="margin-top:4px">${esc(t('rzpHook'))}</div></div>
+        <button class="btn danger sm" id="gwOff" style="align-self:flex-start">${esc(t('disconnect'))}</button>`
+      : `<ol class="steps"><li>${esc(t('rzpSteps'))}</li></ol>
+        <form id="gwForm" class="stack"><div class="grid2"><div><label for="gk">${esc(t('keyId'))}</label><input id="gk" placeholder="rzp_live_…" autocomplete="off" autocapitalize="off" required></div>
+        <div><label for="gs">${esc(t('keySecret'))}</label><input id="gs" type="password" autocomplete="off" required></div></div>
+        <div><label for="gh">${esc(t('webhookSecret'))}</label><input id="gh" autocomplete="off"></div>
+        <button class="btn" id="gwGo" style="align-self:flex-start">${esc(t('connect'))}</button></form>`}
+     <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
+     <form id="upiForm" class="stack"><div style="font-weight:600">${esc(t('upiTitle'))}</div><p class="sub" style="margin:0">${esc(t('upiHelp'))}</p>
+       <div class="row"><input id="upi" value="${esc(o.upi_id||'')}" placeholder="name@okaxis" autocapitalize="off" aria-label="${esc(t('upiId'))}"><button class="btn soft">${esc(t('save'))}</button></div></form>
+   </div>
+   <div class="card stack"><div class="row sb"><h3>${esc(t('plan'))}: ${esc(pl.name)}</h3>${o.plan_status==='active'?`<span class="chip good">✓</span>`:''}</div>
+     <div class="sub">${ac.trial?esc(t('trialLeft',{n:ac.days}))+' · ':''}${o.plan_status==='active'&&ends?esc(t('renewsOn',{d:ends}))+' · ':''}${o.plan_status==='cancelled'&&ends?esc(t('endsOn',{d:ends}))+' · ':''}${esc(t('membersUsed',{a:cnt,b:lim}))}</div>
+     <div class="bar"><i style="width:${pl.max_tenants>=999999?5:Math.min(100,Math.round(cnt/Math.max(1,pl.max_tenants)*100))}%"></i></div>
+     <button class="btn block" data-act="plans">${esc(o.plan_status==='active'?t('choosePlan'):t('upgrade'))}</button></div>
+   <div class="card stack"><div class="row sb"><h3>${esc(t('myPlaces'))}</h3><span class="sub">${S.props.length} / ${pl.max_properties}</span></div>
+     <div>${S.props.map(p=>`<div class="item" data-prop="${p.id}" role="button" tabindex="0"><div class="grow"><div style="font-weight:600" class="ell">${esc(p.name)}</div><div class="sub">${esc(t(p.category))} · ${S.tenants.filter(x=>x.property_id===p.id&&x.is_active).length} ${esc(t('members'))}</div></div><span class="sub">›</span></div>`).join('')}</div>
+     <button class="btn soft block" data-act="addProp">+ ${esc(t('addPlace'))}</button></div>
+   </div>
+   <div class="stack" style="gap:16px">
+   <div class="card stack"><h3>${esc(t('alerts'))}</h3><p class="sub" style="margin:0">${esc(t('alertsHelp'))}</p>
+     ${pushState?`<div class="sub">${esc(pushState)}</div>`:''}
+     ${store.get('dd_push_on')==='1'&&('Notification' in window)&&Notification.permission==='granted'
+        ? `<div class="row wrap"><span class="chip good">${esc(t('alertsOnDevice'))}</span><button class="btn sm soft" data-act="testpush">${esc(t('testAlert'))}</button></div>`
+        : (pushState?'':`<button class="btn block" data-act="push">${esc(t('enableAlerts'))}</button>`)}
+     <div><label class="switch"><span>${esc(t('dailyAlert'))}</span><input type="checkbox" data-tog="notify_push" ${o.notify_push?'checked':''}></label>
+     <label class="switch"><span>${esc(t('waAlerts'))}</span><input type="checkbox" data-tog="notify_whatsapp" ${o.notify_whatsapp?'checked':''}></label>
+     <label class="switch"><span>${esc(t('smsAlerts'))}</span><input type="checkbox" data-tog="notify_sms" ${o.notify_sms?'checked':''}></label></div></div>
+   <div class="card stack"><h3>${esc(t('language'))}</h3>
+     <div class="seg" role="group"><button data-setlang="en" aria-pressed="${lang()==='en'}">English</button><button data-setlang="hi" aria-pressed="${lang()==='hi'}">हिंदी</button></div></div>
+   <form id="profForm" class="card stack"><h3>${esc(t('profile'))}</h3>
+     <div class="grid2"><div><label for="pn">${esc(t('yourName'))}</label><input id="pn" value="${esc(o.full_name||'')}" autocomplete="name"></div>
+     <div><label for="pph">${esc(t('phone'))}</label><input id="pph" type="tel" inputmode="tel" value="${esc(o.phone||'')}" autocomplete="tel"></div></div>
+     <button class="btn soft block">${esc(t('save'))}</button></form>
+   <div class="sub" style="text-align:center">${esc(S.session.user.email||'')}</div>
+   <button class="btn danger block" id="logout">${esc(t('logout'))}</button></div></div>`;
+}
+
+function bindMain(){
+  $$('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;render();window.scrollTo(0,0);});
+  $$('[data-stop]').forEach(a=>a.addEventListener('click',e=>e.stopPropagation()));
+  $$('[data-open]').forEach(b=>{const f=()=>openTenant(b.dataset.open);b.onclick=f;b.onkeydown=e=>{if(e.target===b&&(e.key==='Enter'||e.key===' ')){e.preventDefault();f();}};});
+  $$('[data-copy]').forEach(b=>b.onclick=e=>{e.stopPropagation(); copyLink(S.tenants.find(x=>x.tenant_id===b.dataset.copy));});
+  $$('[data-prop]').forEach(b=>{const f=()=>openProperty(b.dataset.prop);b.onclick=f;b.onkeydown=e=>{if(e.key==='Enter')f();};});
+  $$('[data-act]').forEach(b=>b.onclick=()=>({addT:openAddTenant,plans:openPlans,push:enablePush,testpush:testPush,addProp:()=>openProperty(null)})[b.dataset.act]());
+  $$('[data-filter]').forEach(b=>b.onclick=()=>{S.filter=b.dataset.filter;render();});
+  $$('[data-confirm]').forEach(b=>b.onclick=async e=>{ e.stopPropagation(); b.disabled=true; const r=await sb.rpc('confirm_claim',{p_claim:b.dataset.confirm});
+    if(r.error){ b.disabled=false; return toast(errText(r.error)); } toast(t('confirmed')); await refresh(); });
+  $$('[data-reject]').forEach(b=>armed(b, async()=>{ const r=await sb.rpc('reject_claim',{p_claim:b.dataset.reject}); if(r.error) return toast(errText(r.error)); toast(t('rejected')); await refresh(); }));
+  for(const id of ['pid','pidSide']){ const el=$('#'+id); if(el) el.onchange=()=>{S.pid=el.value;render();}; }
+  const q=$('#q'); if(q) q.oninput=()=>{ S.q=q.value; $('#mbody').innerHTML=membersBody(); bindMain2(); };
+  const rm=$('#rm'); if(rm) rm.onchange=()=>{S.repMonth=rm.value;render();};
+  const dp=$('#dlPay'); if(dp) dp.onclick=()=>{ const by=byTenant();
+    const rows=visiblePayments().filter(p=>p.paid_on.slice(0,7)===S.repMonth).sort((a,b)=>a.paid_on<b.paid_on?-1:1)
+      .map(p=>{const x=by[p.tenant_id]||{}; return [p.paid_on,x.name,x.room,propName(x),modeLabel(p.mode),p.source,Number(p.amount),p.ref||'',p.note];});
+    download(`duedesk-payments-${S.repMonth}.csv`, csv([['Date','Member','Room','Place','Mode','Source','Amount','Reference','Note'],...rows])); };
+  const dd=$('#dlDue'); if(dd) dd.onclick=()=>{ const rows=visible().filter(x=>x.dueNow>0).map(x=>[x.name,x.phone,x.room,propName(x),x.oldest||'',x.dueNow,x.bal,payUrl(x)]);
+    download(`duedesk-dues-${today()}.csv`, csv([['Member','Phone','Room','Place','Unpaid since','Due now','Total balance','Pay link'],...rows])); };
+  $$('[data-setlang]').forEach(b=>b.onclick=async()=>{await updOwner({language:b.dataset.setlang});store.set('dd_lang',b.dataset.setlang);render();});
+  $$('[data-tog]').forEach(c=>c.onchange=()=>updOwner({[c.dataset.tog]:c.checked}));
+  const pf=$('#profForm'); if(pf) pf.onsubmit=async e=>{e.preventDefault();
+    if(await updOwner({full_name:$('#pn').value.trim()||null,phone:$('#pph').value.trim()||null})) toast(t('saved')); };
+  const uf=$('#upiForm'); if(uf) uf.onsubmit=async e=>{e.preventDefault(); if(await updOwner({upi_id:$('#upi').value.trim()||null})) toast(t('saved')); };
+  const gf=$('#gwForm'); if(gf) gf.onsubmit=async e=>{ e.preventDefault(); const b=$('#gwGo'); b.disabled=true;
+    const r=await callFn({action:'gateway_save',key_id:$('#gk').value.trim(),key_secret:$('#gs').value.trim(),webhook_secret:$('#gh').value.trim()});
+    b.disabled=false;
+    if(!r.ok) return toast(r.status===404?t('notDeployed'):r.data.error==='BAD_KEYS'?t('badKeys'):t('gwError'));
+    toast(t('saved')); await refresh(); };
+  const go=$('#gwOff'); if(go) armed(go, async()=>{ await callFn({action:'gateway_remove'}); await refresh(); });
+  const lo=$('#logout'); if(lo) lo.onclick=async()=>{ await unsubscribePush(); stopLive(); await sb.auth.signOut(); };
+  bindChart();
+}
+function bindMain2(){ // rebinding just the member list after search typing (keeps focus in the box)
+  $$('#mbody [data-stop]').forEach(a=>a.addEventListener('click',e=>e.stopPropagation()));
+  $$('#mbody [data-open]').forEach(b=>{const f=()=>openTenant(b.dataset.open);b.onclick=f;b.onkeydown=e=>{if(e.target===b&&(e.key==='Enter'||e.key===' ')){e.preventDefault();f();}};});
+  $$('#mbody [data-copy]').forEach(b=>b.onclick=e=>{e.stopPropagation(); copyLink(S.tenants.find(x=>x.tenant_id===b.dataset.copy));});
+}
+async function updOwner(patch){
+  const r=await sb.from('owners').update(patch).eq('id',S.session.user.id);
+  if(r.error){ toast(errText(r.error)); return false; } Object.assign(S.owner,patch); return true;
+}
+
+// ---------- sheets ----------
+function sheet(html, locked){ closeSheet(); const l=$('#layer'); l.innerHTML=`<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  if(!locked) $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
+  const f=$('.sheet input:not([type=hidden]),.sheet select,.sheet button'); if(f && f.tagName==='INPUT') f.focus(); }
+function closeSheet(){ $('#layer').innerHTML=''; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && $('#scrim') && !S.recovery && S.props.length) closeSheet(); });
+
+const CATS=['pg','library','gym','tuition','other'];
+function renderSetup(){
+  $('#app').innerHTML='';
+  sheet(`<form id="setupForm" class="stack"><h2>${esc(t('setupTitle'))}</h2><p class="sub" style="margin:0">${esc(t('setupSub'))}</p>
+    <div><label for="sn">${esc(t('property'))}</label><input id="sn" required value="My PG"></div>
+    <div><label for="sc">${esc(t('category'))}</label><select id="sc">${CATS.map(c=>`<option value="${c}">${esc(t(c))}</option>`).join('')}</select></div>
+    <div class="seg" role="group"><button type="button" data-l="en" aria-pressed="${lang()==='en'}">English</button><button type="button" data-l="hi" aria-pressed="${lang()==='hi'}">हिंदी</button></div>
+    <button class="btn block">${esc(t('save'))}</button></form>`, true);
+  $$('[data-l]').forEach(b=>b.onclick=async()=>{ await updOwner({language:b.dataset.l}); store.set('dd_lang',b.dataset.l); renderSetup(); });
+  $('#setupForm').onsubmit=async e=>{e.preventDefault();
+    const r=await sb.from('properties').insert({owner_id:S.session.user.id,name:$('#sn').value.trim(),category:$('#sc').value}).select().single();
+    if(r.error) return toast(errText(r.error)); S.props=[r.data]; closeSheet(); render(); };
+}
+function openProperty(id){
+  const p=id?S.props.find(x=>x.id===id):{name:'',category:'pg'};
+  sheet(`<form id="prForm" class="stack"><h2>${esc(id?p.name:t('addPlace'))}</h2>
+    <div><label for="prn">${esc(t('property'))}</label><input id="prn" required value="${esc(p.name)}"></div>
+    <div><label for="prc">${esc(t('category'))}</label><select id="prc">${CATS.map(c=>`<option value="${c}" ${p.category===c?'selected':''}>${esc(t(c))}</option>`).join('')}</select></div>
+    <div class="grid2"><button type="button" class="btn ghost" id="cx">${esc(t('cancel'))}</button><button class="btn" id="sv">${esc(t('save'))}</button></div></form>`);
+  $('#cx').onclick=closeSheet;
+  $('#prForm').onsubmit=async e=>{ e.preventDefault(); $('#sv').disabled=true;
+    const v={name:$('#prn').value.trim(),category:$('#prc').value};
+    const r = id ? await sb.from('properties').update(v).eq('id',id) : await sb.from('properties').insert({...v,owner_id:S.session.user.id});
+    if(r.error){ $('#sv').disabled=false; return r.error.message.includes('PROPERTY_LIMIT')?(closeSheet(),toast(t('propLimit')),openPlans()):toast(errText(r.error)); }
+    closeSheet(); await refresh(); toast(t('saved')); };
+}
+
+// ---------- add / edit member ----------
+function firstChargePreview(rent, join, dd){
+  const cs=cycleStart(join,dd), ce=addDays(nextAnchor(cs,dd),-1);
+  const cyc=dayDiff(cs,ce)+1, used=dayDiff(join,ce)+1;
+  return {days:used, amt:Math.round(rent*used/cyc)};
+}
+function memberForm(x){
+  const e=!!x, pidDefault = e ? x.property_id : (S.pid!=='all'?S.pid:S.props[0].id);
+  return `<form id="tForm" class="stack"><h2>${esc(e?t('editTenant'):t('addTenant'))}</h2>
+   ${S.props.length>1?`<div><label for="tpp">${esc(t('pickPlace'))}</label><select id="tpp">${S.props.map(p=>`<option value="${p.id}" ${p.id===pidDefault?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div>`:''}
+   <div><label for="tn">${esc(t('name'))}</label><input id="tn" required value="${esc(e?x.name:'')}" autocomplete="off"></div>
+   <div class="grid2"><div><label for="tp">${esc(t('phone'))}</label><input id="tp" type="tel" inputmode="tel" value="${esc(e?x.phone||'':'')}"></div>
+   <div><label for="tr">${esc(t('room'))}</label><input id="tr" value="${esc(e?x.room||'':'')}"></div></div>
+   ${e?'':`<div class="grid2"><div><label for="tm">${esc(t('rent'))}</label><input id="tm" type="number" inputmode="numeric" min="0" step="1" required></div>
+   <div><label for="td">${esc(t('deposit'))}</label><input id="td" type="number" inputmode="numeric" min="0" step="1" value="0"></div></div>`}
+   ${e?`<div><label for="td">${esc(t('deposit'))}</label><input id="td" type="number" inputmode="numeric" min="0" step="1" value="${Number(x.security_deposit)}"></div>`:''}
+   <div class="grid2"><div><label for="tj">${esc(t('joinDate'))}</label><input id="tj" type="date" value="${e?x.join_date:today()}" required></div>
+   <div><label for="tdd">${esc(t('dueDay'))}</label><input id="tdd" type="number" inputmode="numeric" min="1" max="31" value="${e?x.due_day:new Date().getDate()}" required></div></div>
+   ${e?`<div class="sub" id="jw" hidden>${esc(t('joinWarn'))}</div>`:''}
+   <div><label for="tnote">${esc(t('note'))}</label><input id="tnote" value="${esc(e?x.note||'':'')}"></div>
+   ${e?`<label class="switch"><span>${esc(t('memberAlerts'))}</span><input type="checkbox" id="tne" ${x.notify_enabled?'checked':''}></label>`:''}
+   <div class="sub" id="prev" aria-live="polite"></div>
+   <div class="grid2"><button type="button" class="btn ghost" id="cx">${esc(t('cancel'))}</button><button class="btn" id="sv">${esc(t('save'))}</button></div></form>`;
+}
+function openAddTenant(){
+  if(!access().ok) return openPlans();
+  sheet(memberForm(null));
+  const upd=()=>{const r=Number($('#tm').value), j=$('#tj').value, d=Number($('#tdd').value);
+    $('#prev').textContent=(r>0&&j&&d>=1&&d<=31)?(x=>t('firstCharge',{a:money(x.amt),n:x.days,r:money(r),d}))(firstChargePreview(r,j,d)):'';};
+  ['tm','tj','tdd'].forEach(i=>$('#'+i).oninput=upd);
+  $('#tj').onchange=()=>{ const j=$('#tj').value; if(j) $('#tdd').value=P(j).getDate(); upd(); };
+  $('#cx').onclick=closeSheet;
+  $('#tForm').onsubmit=async e=>{e.preventDefault(); $('#sv').disabled=true;
+    const r=await sb.from('tenants').insert({owner_id:S.session.user.id,property_id:$('#tpp')?$('#tpp').value:S.props[0].id,name:$('#tn').value.trim(),
+      phone:$('#tp').value.trim()||null,room:$('#tr').value.trim()||null,rent_amount:Number($('#tm').value),security_deposit:Number($('#td').value||0),
+      join_date:$('#tj').value,due_day:Number($('#tdd').value),note:$('#tnote').value.trim()||null});
+    if(r.error){ $('#sv').disabled=false; const m=errText(r.error); if(m===t('limitReached')){ closeSheet(); toast(m); return openPlans(); } return toast(m); }
+    closeSheet(); await refresh(); toast(t('saved')); };
+}
+function openEdit(x){
+  sheet(memberForm(x));
+  $('#tj').oninput=()=>{ $('#jw').hidden = $('#tj').value===x.join_date; };
+  $('#cx').onclick=()=>openTenant(x.tenant_id);
+  $('#tForm').onsubmit=async e=>{e.preventDefault(); $('#sv').disabled=true;
+    const v={name:$('#tn').value.trim(),phone:$('#tp').value.trim()||null,room:$('#tr').value.trim()||null,security_deposit:Number($('#td').value||0),
+      join_date:$('#tj').value,due_day:Number($('#tdd').value),note:$('#tnote').value.trim()||null,notify_enabled:$('#tne').checked};
+    if($('#tpp')) v.property_id=$('#tpp').value;
+    const r=await sb.from('tenants').update(v).eq('id',x.tenant_id);
+    if(r.error){ $('#sv').disabled=false; return toast(errText(r.error)); }
+    await refresh(); toast(t('saved')); openTenant(x.tenant_id); };
+}
+
+// ---------- member detail ----------
+function remindText(x){
+  const amt=money(x.dueNow>0?x.dueNow:x.bal), prop=propName(x);
+  let s = x.status==='late' ? t('reminder',{name:x.name,prop,amt,date:fdate(x.oldest)}) : t('reminderToday',{name:x.name,prop,amt});
+  if(x.pay_token && (S.gw.connected || S.owner.upi_id)) s += '\n' + t('payHere',{u:payUrl(x)});
+  else if(S.owner.upi_id) s += '\n' + t('upiLine',{u:S.owner.upi_id});
+  return s;
+}
+function linkText(x){ return x.bal>0 ? remindText(x) : t('payHere',{u:payUrl(x)}); }
+function waLink(x){ return `https://wa.me/${cleanPhone(x.phone)}?text=${encodeURIComponent(linkText(x))}`; }
+async function copyLink(x){ try{ await navigator.clipboard.writeText(payUrl(x)); toast(t('linkCopied')); }catch(e){ prompt(t('copyLink'), payUrl(x)); } }
+function ledgerLines(x){
+  return [
+    ...x.ledger.ch.map(c=>({d:c.due_date,k:c.kind==='waiver'?'w':'c',a:Math.abs(Number(c.amount)),id:c.id,adj:c.kind!=='rent',
+      l:c.kind==='rent'?(c.days_charged&&c.label&&c.label.startsWith('Rent ·')?t('charge')+' · '+c.days_charged+(lang()==='hi'?' दिन':' days'):t('charge')):(c.kind==='extra'?t('extra'):t('discount'))+(c.label?' · '+c.label:'')})),
+    ...x.ledger.pay.map(p=>({d:p.paid_on,k:'p',a:Number(p.amount),l:t('paidVia',{m:modeLabel(p.mode)})+(p.source==='upi'?' · UTR '+(p.ref||''):p.note&&p.source==='owner'?' · '+p.note:''),id:p.id,pay:p.source!=='online',online:p.source==='online'}))
+  ].sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:(a.k==='p'?-1:1));
+}
+function openTenant(id){
+  const x=S.tenants.find(v=>v.tenant_id===id); if(!x) return closeSheet();
+  const lines=ledgerLines(x), ph=cleanPhone(x.phone), msg=encodeURIComponent(remindText(x));
+  const canRemind = x.phone && x.bal>0;
+  const acts = x.phone ? `<div class="grid3">
+      <a class="btn soft sm" href="tel:${esc(x.phone)}">${esc(t('call'))}</a>
+      ${S.owner.notify_sms?`<a class="btn soft sm" href="sms:${esc(x.phone)}?body=${canRemind?msg:''}">${esc(t('sms'))}</a>`:''}
+      ${S.owner.notify_whatsapp?`<a class="btn soft sm" target="_blank" rel="noopener" href="https://wa.me/${ph}${canRemind?'?text='+msg:''}">${esc(t('whatsapp'))}</a>`:''}</div>` : '';
+  const dep = Number(x.security_deposit)>0 ? `<div class="kv"><span>${esc(t('depositLeft'))}</span><span class="num">${money(x.depLeft)} / ${money(x.security_deposit)}</span></div>` : '';
+  const settle = !x.is_active && x.bal>0 && x.depLeft>0 ? `<button class="btn soft block" id="settle">${esc(t('settle'))} · ${money(Math.min(x.bal,x.depLeft))}</button>` : '';
+  const refund = !x.is_active && x.bal<=0 && (x.depLeft>0 || x.bal<0) ? `<div class="banner info"><span>${esc(t('refundDue'))}</span><b class="num">${money(x.depLeft + Math.max(0,-x.bal))}</b></div>` : '';
+  const link = x.pay_token ? `<div class="card stack" style="padding:12px 14px"><div class="row sb"><b>${esc(t('payLink'))}</b><button class="linkbtn" id="mReset">${esc(t('resetLink'))}</button></div>
+      <div class="sub" style="margin-top:-6px">${esc(t('payLinkHelp'))}</div>
+      <div class="grid2"><button class="btn soft sm" id="mCopy">${ICON.link} ${esc(t('copyLink'))}</button>${x.phone?`<a class="btn sm" id="mSend" target="_blank" rel="noopener" href="${esc(waLink(x))}">${ICON.send} ${esc(t('sendLink'))}</a>`:''}</div></div>` : '';
+  sheet(`<div class="stack"><div class="row sb"><div class="grow"><h2 class="ell">${esc(x.name)}</h2>
+      <div class="sub">${x.room?esc(x.room)+' · ':''}${S.props.length>1?esc(propName(x))+' · ':''}${money(x.rent_amount)}${esc(t('perMonth'))} · ${esc(t('dueOn',{d:x.due_day}))}</div>
+      <div class="sub">${esc(t('joined',{d:fdate(x.join_date,true)}))}${x.left_date?' · '+esc(t('lastDay',{d:fdate(x.left_date,true)})):''}</div></div>${statusChip(x)}</div>
+    <div class="card"><div class="row sb"><span class="sub">${esc(x.bal>0?t('pending'):t('balance'))}</span><span class="amt num" style="font-size:26px;color:var(${x.bal>0?'--bad':x.bal<0?'--good':'--ink'})">${x.bal<0?'+':''}${money(x.bal)}</span></div>${dep}</div>
+    ${refund}${link}${acts}
+    <button class="btn block" id="pay">${esc(t('addPayment'))}</button>${settle}
+    <div class="grid2"><button class="btn soft sm" id="mExtra">+ ${esc(t('extraCharge'))}</button><button class="btn soft sm" id="mWaive">− ${esc(t('waiver'))}</button></div>
+    <div class="grid2"><button class="btn ghost sm" id="mRent">${esc(t('changeRent'))}</button><button class="btn ghost sm" id="mEdit">${esc(t('edit'))}</button></div>
+    <div class="grid2"><button class="btn ghost sm" id="mShare">${esc(t('statement'))}</button>${x.is_active?`<button class="btn danger sm" id="mOut">${esc(t('moveOut'))}</button>`:`<button class="btn ghost sm" id="mBack">${esc(t('rejoin'))}</button>`}</div>
+    <div><div class="sub" style="font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:13px;margin:4px 0">${esc(t('history'))}</div><div class="ledger">${lines.length?lines.map(l=>`<div class="line"><span>${fdate(l.d)} · ${esc(l.l)}${l.online?` <span class="chip good">${esc(t('online2'))}</span>`:''}${(l.pay||l.adj)?` <button class="btn xs danger" ${l.pay?'data-delp':'data-delc'}="${l.id}">${esc(t('deleteQ'))}</button>`:''}</span><span class="num" style="font-weight:600;white-space:nowrap;color:var(${l.k==='c'?'--ink':'--good'})">${l.k==='c'?'':'−'}${money(l.a)}</span></div>`).join(''):`<div class="empty">${esc(t('noHistory'))}</div>`}</div></div>
+    <button class="btn ghost block" id="cl">${esc(t('close'))}</button></div>`);
+  $('#cl').onclick=closeSheet;
+  $('#pay').onclick=()=>openPay(x);
+  $('#mExtra').onclick=()=>openAdjust(x,'extra');
+  $('#mWaive').onclick=()=>openAdjust(x,'waiver');
+  $('#mRent').onclick=()=>openRent(x);
+  $('#mEdit').onclick=()=>openEdit(x);
+  $('#mShare').onclick=()=>shareStatement(x);
+  if($('#mCopy')) $('#mCopy').onclick=()=>copyLink(x);
+  if($('#mReset')) armed($('#mReset'), async()=>{ const r=await sb.rpc('new_pay_link',{p_tenant:x.tenant_id}); if(r.error) return toast(errText(r.error)); toast(t('resetDone')); await refresh(); openTenant(id); });
+  if($('#mOut')) $('#mOut').onclick=()=>openMoveOut(x);
+  if($('#mBack')) armed($('#mBack'), async()=>{ const r=await sb.from('tenants').update({is_active:true,left_date:null}).eq('id',x.tenant_id);
+    if(r.error) return toast(errText(r.error)); await refresh(); openTenant(id); });
+  if($('#settle')) $('#settle').onclick=async()=>{ const r=await sb.from('payments').insert({owner_id:S.session.user.id,tenant_id:x.tenant_id,amount:Math.min(x.bal,x.depLeft),mode:'deposit',paid_on:today()});
+    if(r.error) return toast(errText(r.error)); await refresh(); toast(t('saved')); openTenant(id); };
+  $$('[data-delp]').forEach(b=>armed(b, async()=>{ const r=await sb.from('payments').delete().eq('id',b.dataset.delp); if(r.error) return toast(errText(r.error)); await refresh(); toast(t('deleted')); openTenant(id); }));
+  $$('[data-delc]').forEach(b=>armed(b, async()=>{ const r=await sb.rpc('delete_adjustment',{p_charge:b.dataset.delc}); if(r.error) return toast(errText(r.error)); await refresh(); toast(t('deleted')); openTenant(id); }));
+}
+function armed(btn, fn){ let a=false; btn.onclick=async e=>{ if(e) e.stopPropagation(); if(!a){ a=true; btn.dataset.orig=btn.textContent; btn.textContent=t('sure'); setTimeout(()=>{ if(a&&btn.isConnected){ a=false; btn.textContent=btn.dataset.orig; } },4000); return; } btn.disabled=true; await fn(); }; }
+function openPay(x){
+  const modes=['cash','upi','bank','other'];
+  const sug = x.dueNow>0 ? Math.round(x.dueNow) : (x.bal>0 ? Math.round(x.bal) : Math.round(Number(x.rent_amount)));
+  sheet(`<form id="pForm" class="stack"><h2>${esc(t('addPayment'))} · ${esc(x.name)}</h2>
+   <div><label for="pa">${esc(t('amount'))}</label><input id="pa" type="number" inputmode="numeric" min="1" step="1" required value="${sug||''}"></div>
+   <div class="grid2"><div><label for="pm">${esc(t('mode'))}</label><select id="pm">${modes.map(m=>`<option value="${m}" ${store.get('dd_mode')===m?'selected':''}>${esc(t(m))}</option>`).join('')}${x.depLeft>0?`<option value="deposit">${esc(t('fromDeposit'))}</option>`:''}</select></div>
+   <div><label for="pd">${esc(t('paidOn'))}</label><input id="pd" type="date" value="${today()}" max="${today()}" required></div></div>
+   <div><label for="pnote">${esc(t('note'))}</label><input id="pnote"></div>
+   <div class="grid2"><button type="button" class="btn ghost" id="cx">${esc(t('cancel'))}</button><button class="btn" id="sv">${esc(t('save'))}</button></div></form>`);
+  $('#cx').onclick=()=>openTenant(x.tenant_id);
+  $('#pForm').onsubmit=async e=>{e.preventDefault(); $('#sv').disabled=true;
+    const mode=$('#pm').value; if(mode!=='deposit') store.set('dd_mode',mode);
+    const r=await sb.from('payments').insert({owner_id:S.session.user.id,tenant_id:x.tenant_id,amount:Number($('#pa').value),mode,paid_on:$('#pd').value,note:$('#pnote').value.trim()||null});
+    if(r.error){ $('#sv').disabled=false; return toast(errText(r.error)); }
+    await refresh(); toast(t('saved')); openTenant(x.tenant_id); };
+}
+function openAdjust(x, kind){
+  sheet(`<form id="aForm" class="stack"><h2>${esc(kind==='extra'?t('extraCharge'):t('waiver'))} · ${esc(x.name)}</h2>
+   <p class="sub" style="margin:0">${esc(kind==='extra'?t('extraHelp'):t('waiverHelp'))}</p>
+   <div><label for="aa">${esc(t('amount'))}</label><input id="aa" type="number" inputmode="numeric" min="1" step="1" required></div>
+   <div class="grid2"><div><label for="al">${esc(t('label'))}</label><input id="al" maxlength="60"></div>
+   <div><label for="ad">${esc(t('date'))}</label><input id="ad" type="date" value="${today()}" required></div></div>
+   <div class="grid2"><button type="button" class="btn ghost" id="cx">${esc(t('cancel'))}</button><button class="btn" id="sv">${esc(t('save'))}</button></div></form>`);
+  $('#cx').onclick=()=>openTenant(x.tenant_id);
+  $('#aForm').onsubmit=async e=>{e.preventDefault(); $('#sv').disabled=true;
+    const r=await sb.rpc('add_adjustment',{p_tenant:x.tenant_id,p_kind:kind,p_amount:Number($('#aa').value),p_date:$('#ad').value,p_label:$('#al').value.trim()});
+    if(r.error){ $('#sv').disabled=false; return toast(errText(r.error)); }
+    await refresh(); toast(t('saved')); openTenant(x.tenant_id); };
+}
+function openRent(x){
+  const cur=cycleStart(today(),x.due_day), nxt=nextAnchor(cur,x.due_day);
+  sheet(`<form id="rForm" class="stack"><h2>${esc(t('changeRent'))} · ${esc(x.name)}</h2>
+   <div><label for="ra">${esc(t('newRent'))}</label><input id="ra" type="number" inputmode="numeric" min="0" step="1" required value="${Math.round(x.rent_amount)}"></div>
+   <div><label for="rf">${esc(t('applyFrom'))}</label><select id="rf"><option value="${nxt}">${esc(t('nextCycle',{d:fdate(nxt)}))}</option><option value="${cur}">${esc(t('thisCycle',{d:fdate(cur)}))}</option></select></div>
+   <div class="grid2"><button type="button" class="btn ghost" id="cx">${esc(t('cancel'))}</button><button class="btn" id="sv">${esc(t('save'))}</button></div></form>`);
+  $('#cx').onclick=()=>openTenant(x.tenant_id);
+  $('#rForm').onsubmit=async e=>{e.preventDefault(); $('#sv').disabled=true;
+    const r=await sb.rpc('change_rent',{p_tenant:x.tenant_id,p_amount:Number($('#ra').value),p_from:$('#rf').value});
+    if(r.error){ $('#sv').disabled=false; return toast(errText(r.error)); }
+    await refresh(); toast(t('saved')); openTenant(x.tenant_id); };
+}
+function openMoveOut(x){
+  sheet(`<form id="oForm" class="stack"><h2>${esc(t('moveOut'))} · ${esc(x.name)}</h2>
+   <p class="sub" style="margin:0">${esc(t('moveOutHelp'))}</p>
+   <div><label for="ol">${esc(t('lastDayQ'))}</label><input id="ol" type="date" value="${today()}" min="${x.join_date}" required></div>
+   <div class="grid2"><button type="button" class="btn ghost" id="cx">${esc(t('cancel'))}</button><button class="btn danger" id="sv">${esc(t('moveOut'))}</button></div></form>`);
+  $('#cx').onclick=()=>openTenant(x.tenant_id);
+  $('#oForm').onsubmit=async e=>{e.preventDefault(); $('#sv').disabled=true;
+    const ld=$('#ol').value, v= ld<today() ? {is_active:false,left_date:ld} : {left_date:ld};
+    const r=await sb.from('tenants').update(v).eq('id',x.tenant_id);
+    if(r.error){ $('#sv').disabled=false; return toast(errText(r.error)); }
+    await refresh(); toast(t('saved')); openTenant(x.tenant_id); };
+}
+function shareStatement(x){
+  const lines=ledgerLines(x).slice(0,8).reverse().map(l=>`${fdate(l.d)}  ${l.l}  ${l.k==='c'?'':'-'}${money(l.a)}`);
+  let s = t('statementHead',{name:x.name,prop:propName(x)})+'\n\n'+lines.join('\n')+'\n\n'+(x.bal<0?t('statementAdv',{a:money(x.bal)}):t('statementBal',{a:money(x.bal)}));
+  if(x.bal>0 && x.pay_token && (S.gw.connected||S.owner.upi_id)) s+='\n'+t('payHere',{u:payUrl(x)});
+  const url = x.phone ? `https://wa.me/${cleanPhone(x.phone)}?text=${encodeURIComponent(s)}` : null;
+  if(navigator.share && !x.phone) navigator.share({text:s}).catch(()=>{});
+  else if(url) window.open(url,'_blank','noopener');
+  else { navigator.clipboard && navigator.clipboard.writeText(s); toast(t('saved')); }
+}
+
+// ---------- plans (DueDesk subscription) ----------
+function openPlans(){
+  const cur=S.owner.plan_id, cyc=S.cycle;
+  sheet(`<div class="stack"><h2>${esc(t('choosePlan'))}</h2>
+   <div class="seg" role="group"><button data-cyc="monthly" aria-pressed="${cyc==='monthly'}">${esc(t('monthly'))}</button><button data-cyc="yearly" aria-pressed="${cyc==='yearly'}">${esc(t('yearly'))}</button></div>
+   ${S.plans.filter(p=>p.id!=='trial'||cur==='trial').map(p=>{ const price=cyc==='yearly'?p.price_yearly:p.price_monthly; const isCur=p.id===cur;
+     return `<div class="plan ${isCur?'cur':''}"><div class="row sb"><h3>${esc(p.name)}</h3><div class="amt num">${price?money(price)+esc(cyc==='yearly'?t('perYear'):t('perMonth')):'₹0'}</div></div>
+     <div class="sub">${p.max_tenants>=999999?esc(t('unlimited')):p.max_tenants} ${esc(t('members'))} · ${p.max_properties} ${esc(t('properties'))}</div>
+     ${isCur?`<div class="sub" style="margin-top:6px;font-weight:600">${esc(t('currentPlan'))}</div>`:(p.id!=='trial'?`<button class="btn sm block" style="margin-top:10px" data-buy="${p.id}">${esc(t('subscribe'))}</button>`:'')}</div>`; }).join('')}
+   <button class="btn ghost block" id="cx">${esc(t('close'))}</button></div>`);
+  $('#cx').onclick=closeSheet;
+  $$('[data-cyc]').forEach(b=>b.onclick=()=>{S.cycle=b.dataset.cyc;openPlans();});
+  $$('[data-buy]').forEach(b=>b.onclick=()=>buyPlan(b.dataset.buy, b));
+}
+async function callFn(body){
+  const { data } = await sb.auth.getSession();
+  try{
+    const r = await fetch(FN_URL,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_KEY,Authorization:'Bearer '+(data.session?data.session.access_token:SUPABASE_KEY)},body:JSON.stringify(body)});
+    let j={}; try{ j=await r.json(); }catch(e){}
+    return {ok:r.ok,status:r.status,data:j};
+  }catch(e){ return {ok:false,status:0,data:{}}; }
+}
+function loadScript(src){ return new Promise((res,rej)=>{ if($(`script[src="${src}"]`)) return res(); const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+async function buyPlan(plan, btn){
+  btn.disabled=true;
+  try{
+    const r=await callFn({action:'subscribe',plan,cycle:S.cycle});
+    if(!r.ok){ btn.disabled=false; if(r.status===503||r.status===404||r.status===0||r.data.error==='PLAN_NOT_CONFIGURED') return toast(t('payNotReady')); return toast(r.data.error||t('payFailed')); }
+    await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+    const rzp=new Razorpay({ key:r.data.key_id, subscription_id:r.data.subscription_id, name:'DueDesk', description:plan+' · '+S.cycle,
+      prefill:{email:S.session.user.email||'', contact:S.owner.phone||''}, theme:{color:'#0f6b5c'},
+      handler: async resp=>{ const v=await callFn({action:'verify',...resp}); if(!v.ok) return toast(v.data.error||t('payFailed')); closeSheet(); await refresh(); toast(t('payDone')); },
+      modal:{ ondismiss:()=>{ btn.disabled=false; } } });
+    rzp.on('payment.failed',()=>toast(t('payFailed')));
+    rzp.open();
+  }catch(e){ btn.disabled=false; toast(t('payNotReady')); }
+}
+
+// ---------- phone alerts (web push) ----------
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const standalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+function pushSupport(){
+  if(isIOS && !standalone()) return t('alertsIOS');
+  if(!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return t('alertsUnsupported');
+  if(Notification.permission==='denied') return t('alertsBlocked');
+  return '';
+}
+function keyBytes(b64){ const s=atob(b64.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-b64.length%4)%4)); return Uint8Array.from(s,c=>c.charCodeAt(0)); }
+async function enablePush(){
+  const why=pushSupport(); if(why) return toast(why);
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){ store.set('dd_nudge_off','1'); render(); return toast(t('alertsBlocked')); }
+    let key=S.vapid; if(!key){ const r=await sb.rpc('get_vapid_public'); key=r.data; }
+    if(!key){ const f=await callFn({action:'vapid'}); key=f.data&&f.data.publicKey; }
+    if(!key) return toast(t('alertsNotReady'));
+    S.vapid=key;
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(sub){ const cur=sub.options&&sub.options.applicationServerKey; if(cur && btoa(String.fromCharCode(...new Uint8Array(cur))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')!==key){ await sub.unsubscribe(); sub=null; } }
+    if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:keyBytes(key)});
+    const j=sub.toJSON();
+    const r=await sb.from('push_subscriptions').upsert({owner_id:S.session.user.id,endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,user_agent:navigator.userAgent.slice(0,200)},{onConflict:'endpoint'});
+    if(r.error) return toast(r.error.message);
+    store.set('dd_push_on','1');
+    if(!S.owner.notify_push) await updOwner({notify_push:true});
+    render(); testPush();
+  }catch(e){ toast(String(e.message||e)); }
+}
+async function testPush(){
+  const r=await callFn({action:'test',lang:lang()});
+  if(!r.ok) return toast(t('alertsNotReady'));
+  toast(r.data.phones?t('testSent'):t('noPhones'));
+}
+async function unsubscribePush(){
+  try{ if(!('serviceWorker' in navigator)) return; const reg=await navigator.serviceWorker.getRegistration(); const sub=reg&&await reg.pushManager.getSubscription();
+    if(sub){ await sb.from('push_subscriptions').delete().eq('endpoint',sub.endpoint); await sub.unsubscribe(); } store.set('dd_push_on',''); }catch(e){}
+}
+
+// ---------- live updates: a member pays → the dashboard updates by itself ----------
+let liveTimer=null, pollTimer=null;
+function startLive(){
+  stopLive();
+  const uid=S.session.user.id;
+  S.rt = sb.channel('dd-'+uid)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'payments',filter:'owner_id=eq.'+uid}, ev=>onLive('pay',ev.new))
+    .on('postgres_changes',{event:'*',schema:'public',table:'payment_claims',filter:'owner_id=eq.'+uid}, ev=>onLive('claim',ev.new))
+    .subscribe(st=>{ const on=st==='SUBSCRIBED'; if(on!==S.live){ S.live=on; const d=$('.livedot'); if(d) d.classList.toggle('off',!on); } });
+  // fallback if Realtime is off: quietly refresh every 45 s while the page is open
+  pollTimer=setInterval(()=>{ if(document.visibilityState==='visible' && !$('#scrim')) refresh(true); }, 45000);
+}
+function stopLive(){ if(S.rt){ try{ sb.removeChannel(S.rt); }catch(e){} S.rt=null; } clearInterval(pollTimer); S.live=false; }
+function onLive(kind, row){
+  if(!row) return;
+  const x=S.tenants.find(v=>v.tenant_id===row.tenant_id), n=x?x.name:'';
+  if(kind==='pay' && row.source==='online'){ S.fresh.add(row.id); toast(t('paidToast',{n,a:money(row.amount)})); }
+  if(kind==='claim' && row.status==='pending' && !S.claims.some(c=>c.id===row.id)) toast(t('claimToast',{n,a:money(row.amount)}));
+  clearTimeout(liveTimer); liveTimer=setTimeout(()=>refresh(true), 400);
+}
+
+// ---------- boot ----------
+async function refresh(quiet){
+  const before=new Set(S.payments.map(p=>p.id)), had=S.loaded;
+  try{ await loadAll(); S.dbOld=false; }catch(e){
+    const m=String((e&&e.message)||e);
+    if(/does not exist|Could not find|schema cache|PGRST20[0-9]/i.test(m)){ S.dbOld=m; S.loaded=true; render(); return; }
+    if(!S.loaded && !loadCache()) { toast(errText(e)); } else if(!quiet && navigator.onLine!==false) toast(errText(e)); }
+  if(had) S.payments.forEach(p=>{ if(!before.has(p.id) && p.source!=='owner') S.fresh.add(p.id); });
+  if(S.recovery){ render(); return openRecovery(); }
+  if(quiet && $('#scrim')) return; // don't yank an open form
+  render();
+}
+async function syncOnline(){ // catches online payments whose page was closed early
+  if(S.synced || !S.gw.connected) return; S.synced=true;
+  const r=await callFn({action:'sync'}); if(r.ok && r.data.found) refresh(true);
+}
+sb.auth.onAuthStateChange((ev,session)=>{
+  const was=S.session&&S.session.user.id; S.session=session;
+  if(ev==='PASSWORD_RECOVERY') S.recovery=true;
+  if(!session){ stopLive(); Object.assign(S,{authMode:'login',authMsg:'',owner:null,props:[],tenants:[],charges:[],payments:[],claims:[],loaded:false,tab:'home',pid:'all',synced:false}); render(); return; }
+  if(was!==session.user.id){ S.loaded=false; loadCache(); render(); setTimeout(async()=>{ await refresh(); startLive(); syncOnline(); },0); }
+});
+sb.auth.getSession().then(({data})=>{ if(!data.session) render(); });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && S.session && S.loaded) refresh(true); });
+window.addEventListener('online',()=>{ if(S.session) refresh(true); });
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+render();
+</script>
+</body>
+</html>
