@@ -300,7 +300,7 @@ const I18N = {
  }
 };
 Object.assign(I18N.en, {
-  dashboard:'Dashboard', payments:'Payments', fromN1:'from 1 member', fromPayments1:'1 payment', lateN1:'1 late', dlCsv:'Download CSV', starts:'Starts {d}', online:'Online', onlinePaid:'Paid online · {m}', activeMembers:'Active members', lateN:'{n} late',
+  dashboard:'Dashboard', payments:'Payments', exists:'You already have an account with this email. Please log in.', badEmail:'Please enter a valid email address.', badLogin:'Wrong email or password.', netErr:'Network problem. Please try again.', fromN1:'from 1 member', fromPayments1:'1 payment', lateN1:'1 late', dlCsv:'Download CSV', starts:'Starts {d}', online:'Online', onlinePaid:'Paid online · {m}', activeMembers:'Active members', lateN:'{n} late',
   collectedIn:'Collected · {m}', fromPayments:'{n} payments', waitingConfirm:'Waiting for your confirmation', confirm:'Confirm', reject:'Reject',
   claimLine:'{a} by UPI · UTR {u}', recentPayments:'Recent payments', live:'Live', newBadge:'New', chartTitle:'Collected per month', chartSub:'Last 6 months · {p}',
   sendLink:'Send pay link', copyLink:'Copy pay link', linkCopied:'Pay link copied', payLink:'Online pay link', payLinkHelp:'Members open this link to see their dues and pay you online or by UPI.',
@@ -317,7 +317,7 @@ Object.assign(I18N.en, {
   greeting:'Hello{n}', todayIs:'{d}'
 });
 Object.assign(I18N.hi, {
-  dashboard:'डैशबोर्ड', payments:'पेमेंट', dlCsv:'CSV डाउनलोड', starts:'{d} से शुरू', online:'ऑनलाइन', onlinePaid:'ऑनलाइन मिला · {m}', activeMembers:'सक्रिय सदस्य', lateN:'{n} लेट',
+  dashboard:'डैशबोर्ड', payments:'पेमेंट', exists:'इस ईमेल से खाता पहले से है। कृपया लॉग इन करें।', badEmail:'सही ईमेल लिखें।', badLogin:'ईमेल या पासवर्ड गलत है।', netErr:'नेटवर्क की दिक्कत। फिर कोशिश करें।', dlCsv:'CSV डाउनलोड', starts:'{d} से शुरू', online:'ऑनलाइन', onlinePaid:'ऑनलाइन मिला · {m}', activeMembers:'सक्रिय सदस्य', lateN:'{n} लेट',
   collectedIn:'मिला · {m}', fromPayments:'{n} पेमेंट', waitingConfirm:'आपके कन्फर्म का इंतज़ार', confirm:'कन्फर्म', reject:'मना करें',
   claimLine:'{a} UPI से · UTR {u}', recentPayments:'हाल के पेमेंट', live:'लाइव', newBadge:'नया', chartTitle:'हर महीने मिला', chartSub:'पिछले 6 महीने · {p}',
   sendLink:'पेमेंट लिंक भेजें', copyLink:'पेमेंट लिंक कॉपी करें', linkCopied:'लिंक कॉपी हो गया', payLink:'ऑनलाइन पेमेंट लिंक', payLinkHelp:'सदस्य इस लिंक से अपना बकाया देखकर ऑनलाइन या UPI से पैसे दे सकते हैं।',
@@ -467,10 +467,16 @@ function renderAuth(){
     $('#authErr').textContent = r.error ? r.error.message : t('resetSent'); };
   $('#authForm').onsubmit=async e=>{
     e.preventDefault(); const em=$('#em').value.trim(), pw=$('#pw').value; $('#authGo').disabled=true; S.authEmail=em;
-    const r = signup ? await sb.auth.signUp({email:em,password:pw}) : await sb.auth.signInWithPassword({email:em,password:pw});
+    const fail = m => { if($('#authGo')) $('#authGo').disabled=false; S.authMsg=m; if($('#authErr')) $('#authErr').textContent=m; };
+    if(signup){ // account is created already confirmed (no confirmation email), then we log in
+      let res; try{ res=await fetch(SUPABASE_URL+'/functions/v1/signup',{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_KEY},body:JSON.stringify({email:em,password:pw})}); }catch(e){ return fail(t('netErr')); }
+      const j=await res.json().catch(()=>({}));
+      if(!res.ok){ if(j.error==='EXISTS'){ S.authMode='login'; S.authMsg=t('exists'); return renderAuth(); }
+        return fail(j.error==='BAD_EMAIL'?t('badEmail'):j.error==='WEAK_PASSWORD'?t('password'):(j.detail||t('netErr'))); }
+    }
+    const r = await sb.auth.signInWithPassword({email:em,password:pw});
     if($('#authGo')) $('#authGo').disabled=false;
-    if(r.error){ S.authMsg=r.error.message; if($('#authErr')) $('#authErr').textContent=S.authMsg; return; }
-    if(signup && !r.data.session){ S.authMode='login'; S.authMsg=t('checkMail'); renderAuth(); }
+    if(r.error) return fail(/invalid/i.test(r.error.message)?t('badLogin'):r.error.message);
   };
 }
 function openRecovery(){
